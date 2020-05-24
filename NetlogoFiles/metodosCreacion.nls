@@ -1,0 +1,107 @@
+to crearPersonas
+  create-personas numero-personas
+    [ setxy 0  0
+      set edad (random (75 - 1) + 1) * 365 * 24 * 60 ; random entre 1 y 75 años. 365 dias por 24 horas por 60 minutos
+      set tiempo-infectado 0
+      set restante-serInmune 0
+      set shape "person"
+      set size 1  ;;tamano del shape
+      set estacionCercana nobody
+      set lugarPosicion "casa"
+      set irAEstacion? false
+      set confinado? false
+      set volverACasa? false
+      set alTrabajo? false
+      set enCasa? true
+      set vehiculoPropio? false
+      set irAlVehiculo? false
+      set infeccioso? false
+      set asintomatica? false
+      set tiempoInternoLatencia tiempoLatencia * 24 * 60
+      set tiempoPromedioViajeAlTrabajo getTiempoPromedioViaje
+      set tiempoPromedioViajeACasa getTiempoPromedioViaje
+      set aleatorioProbabilidaInfectar 0
+      set aleatorioProbabilidadMorir 0
+      set aleatorioProbabilidaContacto 0
+      set lugarPosicion "casa"
+      set nivelEnfermedad "ninguno"
+      get-saludable
+    ]
+end
+
+to crearVehiculos
+  let numeroVehiculos count personas with [vehiculoPropio? = true]
+  create-vehiculos numeroVehiculos [
+    setxy random ((-30) - (-20)) + (-20) random 10
+    set shape "car"
+    set color white
+  ]
+
+end
+
+to crearPersonasConVehiculoPropio
+  let personasVehiculoPropio 0
+  ask personas [
+    if (%vehiculoPropio * count personas / 100)  > personasVehiculoPropio [
+      set vehiculoPropio? true 
+      set irAlVehiculo? true 
+      set irAEstacion? false
+      set personasVehiculoPropio personasVehiculoPropio + 1
+    ]
+  ]
+end
+
+to crearCasasConfinamiento
+  let listaCoordenadasCasas []
+  let personasConfinadas 0
+  ask personas [
+    set listaCoordenadasCasas lput coordenadaCasa listaCoordenadasCasas
+    if (%confinamiento * count personas / 100)  > personasConfinadas [
+      set confinado? true
+      set personasConfinadas personasConfinadas + 1
+    ]
+  ]
+
+  foreach listaCoordenadasCasas [ tuplaCoordenadasCasa ->
+    create-casas 1 [
+      setxy item 0 tuplaCoordenadasCasa item 1 tuplaCoordenadasCasa
+      set shape "house efficiency"
+      set color white
+      set size 1.5
+    ]
+  ]
+end
+
+to crearLugares
+  let listaCoordenadasLugares (list (list -6 12) (list 6 -12) (list -12 6) (list 12 -6) (list 6 12)  (list -6 -12) (list -12 -6) (list 12 6))
+  let listaShapesLugares (list "building store" "factory")
+  foreach listaCoordenadasLugares [ coordenadaLugar ->
+    create-lugares 1 [
+      setxy item 0 coordenadaLugar item 1 coordenadaLugar
+      set shape one-of listaShapesLugares
+      set size 2  ;;tamano del shape
+      set color yellow
+    ]
+  ]
+end
+
+to crearEstaciones
+  let listaCoordenadasEstaciones (list (list 12 12) (list 12 -12) (list -12 12) (list -12 -12) )
+  foreach listaCoordenadasEstaciones [ coordenadaEstacion ->
+    create-buses 1 [
+      setxy item 0 coordenadaEstacion item 1 coordenadaEstacion
+      set shape "bus"
+      set size 2  ;;tamano del shape
+      set color blue
+    ]
+  ]
+end
+
+to crearHospital
+  create-hospitales 1 [
+    setxy 0 0
+    set shape "hospital"
+    set size 5
+    set label camasUCI
+  ]
+end

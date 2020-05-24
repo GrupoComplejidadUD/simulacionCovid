@@ -1,0 +1,43 @@
+to-report getValoresXYporArea
+  let x 0
+  let y 0
+  
+  if areaTipo = 1 
+  [ set x (random ((- maxX) - (-20)) + (-20))
+    set y (random (maxY - 20) + 20)
+  ]
+  if areaTipo = 2 
+  [
+    set x (random (maxX - 20) + 20)
+    set y (random (maxY - 20) + 20)
+  ]
+  if areaTipo = 3 
+  [
+    set x (random ((- maxX) - (-20)) + (-20))
+    set y (random ((- maxY) - (-20)) + (-20))
+  ]
+  if areaTipo = 4 
+  [
+    set x (random (maxX - 20) + 20)
+    set y (random ((- maxY) - (-20)) + (-20)) 
+  ]
+  
+  ifelse areaTipo >= 4 
+  [set areaTipo 1]
+  [set areaTipo areaTipo + 1]
+  
+  report (list x y)
+end
+
+to-report getProbabilidadMorir [age]
+  let probabilidadMorir 0
+      if age > (80 * 365 * 24 * 60)  [ set probabilidadMorir 13.4 report probabilidadMorir]
+      if age > (70 * 365 * 24 * 60)  [ set probabilidadMorir 8.6 report probabilidadMorir]
+      if age > (60 * 365 * 24 * 60)  [ set probabilidadMorir 3.9 report probabilidadMorir]
+      if age > (50 * 365 * 24 * 60)  [ set probabilidadMorir 1.2 report probabilidadMorir]
+      if age > (40 * 365 * 24 * 60)  [ set probabilidadMorir 0.29 report probabilidadMorir]
+      if age > (30 * 365 * 24 * 60)  [ set probabilidadMorir 0.14 report probabilidadMorir]
+      if age > (20 * 365 * 24 * 60)  [ set probabilidadMorir 0.06 report probabilidadMorir]
+      if age > (10 * 365 * 24 * 60)  [ set probabilidadMorir 0.01 report probabilidadMorir]
+  report 0.01
+end

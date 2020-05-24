@@ -1,0 +1,56 @@
+to guardarPersonasBaseDatos
+  let dia getHora
+  ask personas [
+      updateDictPython "_id" who
+      insertarAgentePorAtributos listaAtributosPersona
+      py:set "id" item 2 dia
+      updateDictPython "lugarInfeccion" "sin definir"
+      (py:run "agregarPersona(id, 'dias')")
+  ]
+end
+
+to guardarDiaBaseDatos
+  let dia getHora
+  (py:run "resetDict()")
+  updateDictPython "_id" item 2 dia
+  updateDictPython "dia" item 2 dia
+  (py:run "insertarDictMongo('dias')")
+  (py:run "resetDict()")
+  guardarPersonasBaseDatos
+  guardarDatosDia "inicio"
+end
+
+to guardarDatosDia [parametro]
+  let dia getHora
+  (py:run "resetDict()")
+  py:set "variable" parametro
+  py:set "id" item 2 dia
+  updateDictPython "%infectadosInicio" %infectados
+  updateDictPython "muertos" muertos
+  updateDictPython "contagiados" contagiados
+  (py:run "agregarInformacionDia(id, 'dias', variable)")
+end
+
+to actualizarLugarInfeccion [lugarInfeccion]
+  let dia getHora
+  show who
+  show lugarInfeccion
+  py:set "id" item 2 dia
+  py:set "id_persona" who
+  py:set "lugar_infeccion" lugarInfeccion
+  (py:run "actualizar_lugar_infeccion(id, id_persona, 'dias', lugar_infeccion)")
+
+end
+
+to insertarAgentePorAtributos [listaAtributos]
+  foreach listaAtributos [
+      atributo ->
+      updateDictPython atributo [runresult atributo] of self
+  ]
+end
+
+to updateDictPython [key value]
+  py:set "key" key
+  py:set "value" value
+  (py:run "updateDict(key, value)")
+end
