@@ -15,47 +15,49 @@ CORS(app)
 
 mongo = PyMongo(app)
 
+
 @app.route('/data', methods=['GET'])
-def hello():
+def getData():
     result = mongo.db['dias']
-    cursor = result.find({})
+    collection_dias = result.find({})
     output = []
-    tiempoPromedioIda = []
-    tiempoPromedioVuelta = []
-    totalMuertes = 0
-    totalContagios = 0
+    tiempo_promedio_ida = []
+    tiempo_promedio_vuelta = []
+    total_muertes = 0
+    total_contagios = 0
 
-    for s in cursor:
-        variableDia = s['variablesGlobales']
+    for document in collection_dias:
+        variableDia = document['variablesGlobales']
         if len(variableDia) > 1:
-            muertosInicio = variableDia[0]['inicio']['muertos']
-            muertosFin = variableDia[1]['fin']['muertos']
-            contagiadosInicio = variableDia[0]['inicio']['contagiados']
-            contagiadosFin = variableDia[1]['fin']['contagiados']
-            contagiadosPorDia = contagiadosFin - contagiadosInicio
-            muertesPorDia = muertosFin - muertosInicio
-            totalMuertes = totalMuertes + muertesPorDia
-            totalContagios = totalContagios + contagiadosPorDia
-            personas = s['personas']
-            dataFramePersonas = pandas.DataFrame(personas)
-            tiempoPromedioIda.append(dataFramePersonas['tiempoPromedioViajeAlTrabajo'].mean())
-            tiempoPromedioVuelta.append(dataFramePersonas['tiempoPromedioViajeACasa'].mean())
-            output.append({'dia': s['dia'], 'muertos': muertesPorDia, "contagiados" : contagiadosPorDia})
+            muertos_inicio = variableDia[0]['inicio']['muertos']
+            muertos_fin = variableDia[1]['fin']['muertos']
+            contagiados_inicio = variableDia[0]['inicio']['contagiados']
+            contagiados_fin = variableDia[1]['fin']['contagiados']
+            contagiados_por_dia = contagiados_fin - contagiados_inicio
+            muertes_por_dia = muertos_fin - muertos_inicio
+            total_muertes = total_muertes + muertes_por_dia
+            total_contagios = total_contagios + contagiados_por_dia
+            personas = document['personas']
+            data_frame_personas = pandas.DataFrame(personas)
+            tiempo_promedio_ida.append(data_frame_personas['tiempoPromedioViajeAlTrabajo'].mean())
+            tiempo_promedio_vuelta.append(data_frame_personas['tiempoPromedioViajeACasa'].mean())
+            output.append({'dia': document['dia'], 'muertos': muertes_por_dia, "contagiados": contagiados_por_dia})
 
-    dataFrameDias = pandas.DataFrame(output, columns= ['dia', 'muertos'])
-    mean = dataFrameDias.mean()
+    data_frame_dias = pandas.DataFrame(output, columns=['dia', 'muertos'])
+    mean = data_frame_dias.mean()
 
-    totalPromedioIda = pandas.DataFrame(tiempoPromedioIda, columns= ['tiempo']).mean()
-    totalPromedioVuelta = pandas.DataFrame(tiempoPromedioVuelta, columns= ['tiempo']).mean()
+    total_promedio_ida = pandas.DataFrame(tiempo_promedio_ida, columns=['tiempo']).mean()
+    total_promedio_vuelta = pandas.DataFrame(tiempo_promedio_vuelta, columns=['tiempo']).mean()
 
     return jsonify({
-        'result' : output, 
-        'mean' : mean.to_json(), 
-        'promViajeIda' : totalPromedioIda['tiempo'], 
-        'promViajeVuelta' : totalPromedioVuelta['tiempo'], 
-        "muertesTotal": totalMuertes,
-        "contagiosTotal": totalContagios
+        'result': output,
+        'mean': mean.to_json(),
+        'promViajeIda': total_promedio_ida['tiempo'],
+        'promViajeVuelta': total_promedio_vuelta['tiempo'],
+        "muertesTotal": total_muertes,
+        "contagiosTotal": total_contagios
     })
+
 
 if __name__ == '__main__':
     app.run(debug=True)
