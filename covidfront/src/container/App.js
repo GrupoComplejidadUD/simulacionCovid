@@ -3,8 +3,9 @@ import './App.css';
 import GraphBar from "../components/GraphBar"
 import Highcharts from 'highcharts/highstock'
 import { Container } from 'semantic-ui-react'
-import { Divider, Header, Icon, Image, Dimmer, Loader, Segment } from 'semantic-ui-react'
+import { Divider, Header, Icon, Image, Dimmer, Loader, Segment, Grid } from 'semantic-ui-react'
 import StatisticFour from '../components/StatisticFour'
+import StatisticContagio from '../components/StatisticContagio'
 
 class App extends React.Component {
 
@@ -13,30 +14,39 @@ class App extends React.Component {
     this.state = {
       awaitToRender: true,
       options: null,
-      variablesGlobales: null
+      options2: null,
+      variablesGlobales: null,
+      lugaresContagio: null
     };
   }
 
-  async componentDidMount() {
-    const apiURL = "http://127.0.0.1:5000/data";
-    let response = await fetch(apiURL);
-    let responseJson = await response.json();
-    let MapOptions = {
+  createOptions(type, title, textYAxis) {
+    let options = {
       chart: {
-        type: 'column'
+        type: type
       },
       title: {
-        text: 'Numero de muertos - contagiados'
+        text: title
       },
       series: [],
       xAxis: {},
       yAxis: {
         min: 0,
         title: {
-          text: 'Muertes'
+          text: textYAxis
         }
       }
     }
+    return options;
+  }
+
+  async componentDidMount() {
+    const apiURL = "http://127.0.0.1:5000/data";
+    let response = await fetch(apiURL);
+    let responseJson = await response.json();
+    let MapOptions = this.createOptions('column', 'Numero de muertos - contagiados', 'Muertes')
+
+    let MapOptions2 = this.createOptions('column', 'Lugares de contagio', 'Contagios')
 
     let dataMuertos = [];
     let dataContagiados = [];
@@ -55,13 +65,21 @@ class App extends React.Component {
     MapOptions.series.push({ name: "Contagiados", data: dataContagiados });
     MapOptions.xAxis.categories = categorias;
     let variablesGlobales = {
-      promMuertes : JSON.parse(responseJson.mean),
-      promViajeIda : promedioViajeIda,
-      promViajeVuelta : promedioViajeVuelta,
-      totalMuertos : totalMuertos,
-      totalContagiados : totalContagiados
+      promMuertes: JSON.parse(responseJson.mean),
+      promViajeIda: promedioViajeIda,
+      promViajeVuelta: promedioViajeVuelta,
+      totalMuertos: totalMuertos,
+      totalContagiados: totalContagiados
     }
-    this.setState({ options: MapOptions, awaitToRender: false, variablesGlobales : variablesGlobales})
+
+    let lugaresContagio = responseJson.lugaresContagio;
+    MapOptions2.series.push({ name: "Trabajo", data: [lugaresContagio.trabajo] })
+    MapOptions2.series.push({ name: "Casa", data: [lugaresContagio.casa] })
+    MapOptions2.series.push({ name: "Sin definir", data: [lugaresContagio["sin definir"]] })
+    MapOptions2.series.push({ name: "Transporte", data: [lugaresContagio.transporte] })
+
+
+    this.setState({ options: MapOptions, options2: MapOptions2, awaitToRender: false, variablesGlobales: variablesGlobales, lugaresContagio: lugaresContagio })
   }
 
 
@@ -71,28 +89,42 @@ class App extends React.Component {
     return (
       <div>
         {awaitToRender ? (<div>
-          <Segment>
-            <Dimmer active>
-              <Loader indeterminate>Preparando Graficas</Loader>
-            </Dimmer>
 
-            <Image src='https://react.semantic-ui.com/images/wireframe/short-paragraph.png' />
-          </Segment>
+          <Container>
+            <Grid>
+              <Grid.Row centered>
+                <Segment>
+                  <Dimmer active>
+                    <Loader indeterminate>Preparando Graficas</Loader>
+                  </Dimmer>
+                  <Image src='https://react.semantic-ui.com/images/wireframe/short-paragraph.png' />
+                </Segment>
+              </Grid.Row>
+            </Grid>
+          </Container>
+
         </div>
         ) :
           (
 
             <Container>
-              <Header as='h2' icon textAlign='center'>
-                <Icon name='users' circular />
-                <Header.Content>Reporte Simulacion</Header.Content>
-              </Header>
-              <Divider />
-              <GraphBar options={this.state.options} highcharts={Highcharts} />
-              <StatisticFour variables={this.state.variablesGlobales}/>
-
+              <Segment>
+                <Header as='h2' icon textAlign='center'>
+                  <Icon name='users' circular />
+                  <Header.Content>Reporte Muertes y contagios</Header.Content>
+                </Header>
+                <Divider section />
+                <GraphBar options={this.state.options} highcharts={Highcharts} />
+                <StatisticFour variables={this.state.variablesGlobales} />
+                <Divider section />
+                <Header as='h2' icon textAlign='center'>
+                  <Icon name='home' circular />
+                  <Header.Content>Reporte Lugares de Contagio</Header.Content>
+                </Header>
+                <GraphBar options={this.state.options2} highcharts={Highcharts} />
+                <StatisticContagio variables={this.state.lugaresContagio} />
+              </Segment>
             </Container>
-
 
           )}
       </div>

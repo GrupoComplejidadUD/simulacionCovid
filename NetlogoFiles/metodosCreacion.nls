@@ -24,6 +24,7 @@ to crearPersonas
       set aleatorioProbabilidadMorir 0
       set aleatorioProbabilidaContacto 0
       set lugarPosicion "casa"
+      set lugarInfeccion ""
       set nivelEnfermedad "ninguno"
       get-saludable
     ]

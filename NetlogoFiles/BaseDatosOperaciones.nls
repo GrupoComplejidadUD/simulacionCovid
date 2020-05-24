@@ -4,7 +4,6 @@ to guardarPersonasBaseDatos
       updateDictPython "_id" who
       insertarAgentePorAtributos listaAtributosPersona
       py:set "id" item 2 dia
-      updateDictPython "lugarInfeccion" "sin definir"
       (py:run "agregarPersona(id, 'dias')")
   ]
 end
@@ -16,22 +15,26 @@ to guardarDiaBaseDatos
   updateDictPython "dia" item 2 dia
   (py:run "insertarDictMongo('dias')")
   (py:run "resetDict()")
-  guardarPersonasBaseDatos
   guardarDatosDia "inicio"
 end
 
 to guardarDatosDia [parametro]
-  let dia getHora
   (py:run "resetDict()")
+  if parametro = "fin" [guardarPersonasBaseDatos]
+  let dia getHora
+  let numeroDia item 2 dia
   py:set "variable" parametro
   py:set "id" item 2 dia
   updateDictPython "%infectadosInicio" %infectados
   updateDictPython "muertos" muertos
-  updateDictPython "contagiados" contagiados
+  ifelse numeroDia = 0 and parametro = "inicio" 
+  [updateDictPython "contagiados" 0] ;; Esto evita que no se cuenten los infectados introducidos al inicio de la simulacion
+  [updateDictPython "contagiados" contagiados]
   (py:run "agregarInformacionDia(id, 'dias', variable)")
 end
 
-to actualizarLugarInfeccion [lugarInfeccion]
+to actualizarLugarInfeccion
+  (py:run "resetDict()")
   let dia getHora
   show who
   show lugarInfeccion
