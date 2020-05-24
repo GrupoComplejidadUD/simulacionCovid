@@ -24,6 +24,15 @@ def getData():
         "casa": 0,
         "sin definir": 0
     }
+
+    estrato_socioeconomico = {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0
+    }
     result = mongo.db['dias']
     collection_dias = result.find({})
     output = []
@@ -35,7 +44,7 @@ def getData():
     for document in collection_dias:
         variable_dia = document['variablesGlobales']
         if len(variable_dia) > 1:
-            determinar_lugares_contagio(document, lugares_contagios)
+            determinar_lugares_contagio_estrato(document, lugares_contagios, estrato_socioeconomico)
             muertos_inicio = variable_dia[0]['inicio']['muertos']
             muertos_fin = variable_dia[1]['fin']['muertos']
             contagiados_inicio = variable_dia[0]['inicio']['contagiados']
@@ -63,18 +72,24 @@ def getData():
         'promViajeVuelta': total_promedio_vuelta['tiempo'],
         "muertesTotal": total_muertes,
         "contagiosTotal": total_contagios,
-        "lugaresContagio": lugares_contagios
+        "lugaresContagio": lugares_contagios,
+        "estratoSocioeconomico" : estrato_socioeconomico
     })
 
 
-def determinar_lugares_contagio(documento, lugares_contagios):
+def determinar_lugares_contagio_estrato(documento, lugares_contagios, estrato_socioeconomico):
     list_personas = documento['personas']
     for persona in list_personas:
 
         if persona["infectada?"] and persona["tiempo-infectado"] < 1440:
-            lugar_infeccion = persona["lugarInfeccion"]
-            valor = lugares_contagios.get(lugar_infeccion)
-            lugares_contagios.update({lugar_infeccion: valor + 1})
+            actualizar_valores_diccionario(lugares_contagios, persona, "lugarInfeccion")
+            actualizar_valores_diccionario(estrato_socioeconomico, persona, "estratoSocial")
+
+
+def actualizar_valores_diccionario(diccionario, persona, atributo):
+    persona_atributo = str(persona[atributo])
+    valor = diccionario.get(persona_atributo)
+    diccionario.update({persona_atributo: valor + 1})
 
 
 if __name__ == '__main__':

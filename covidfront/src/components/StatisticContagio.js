@@ -1,5 +1,5 @@
 import React from 'react'
-import { Icon, Image, Statistic } from 'semantic-ui-react'
+import { Icon, Statistic } from 'semantic-ui-react'
 
 const StatisticContagio = ({ variables }) => {
     return (

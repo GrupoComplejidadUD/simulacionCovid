@@ -15,6 +15,7 @@ class App extends React.Component {
       awaitToRender: true,
       options: null,
       options2: null,
+      options3: null,
       variablesGlobales: null,
       lugaresContagio: null
     };
@@ -46,8 +47,6 @@ class App extends React.Component {
     let responseJson = await response.json();
     let MapOptions = this.createOptions('column', 'Numero de muertos - contagiados', 'Muertes')
 
-    let MapOptions2 = this.createOptions('column', 'Lugares de contagio', 'Contagios')
-
     let dataMuertos = [];
     let dataContagiados = [];
     let categorias = [];
@@ -61,6 +60,7 @@ class App extends React.Component {
       categorias.push("dia " + result.dia)
     }
 
+    console.log(categorias)
     MapOptions.series.push({ name: "Muertos", data: dataMuertos });
     MapOptions.series.push({ name: "Contagiados", data: dataContagiados });
     MapOptions.xAxis.categories = categorias;
@@ -72,6 +72,7 @@ class App extends React.Component {
       totalContagiados: totalContagiados
     }
 
+    let MapOptions2 = this.createOptions('column', 'Lugares de contagio', 'Contagios')
     let lugaresContagio = responseJson.lugaresContagio;
     MapOptions2.series.push({ name: "Trabajo", data: [lugaresContagio.trabajo] })
     MapOptions2.series.push({ name: "Casa", data: [lugaresContagio.casa] })
@@ -79,7 +80,24 @@ class App extends React.Component {
     MapOptions2.series.push({ name: "Transporte", data: [lugaresContagio.transporte] })
 
 
-    this.setState({ options: MapOptions, options2: MapOptions2, awaitToRender: false, variablesGlobales: variablesGlobales, lugaresContagio: lugaresContagio })
+    let MapOptions3 = this.createOptions('column', 'Contagios por estrato', 'Contagios')
+    let estratosContagio = responseJson.estratoSocioeconomico;
+    MapOptions3.series.push({ name: "Estrato 1", data: [estratosContagio["1"]] })
+    MapOptions3.series.push({ name: "Estrato 2", data: [estratosContagio["2"]] })
+    MapOptions3.series.push({ name: "Estrato 3", data: [estratosContagio["3"]] })
+    MapOptions3.series.push({ name: "Estrato 4", data: [estratosContagio["4"]] })
+    MapOptions3.series.push({ name: "Estrato 5", data: [estratosContagio["5"]] })
+    MapOptions3.series.push({ name: "Estrato 6", data: [estratosContagio["6"]] })
+
+
+    this.setState({ 
+      options: MapOptions, 
+      options2: MapOptions2, 
+      options3: MapOptions3,
+      awaitToRender: false, 
+      variablesGlobales: variablesGlobales, 
+      lugaresContagio: lugaresContagio 
+    })
   }
 
 
@@ -123,6 +141,14 @@ class App extends React.Component {
                 </Header>
                 <GraphBar options={this.state.options2} highcharts={Highcharts} />
                 <StatisticContagio variables={this.state.lugaresContagio} />
+
+                <Divider section />
+                <Header as='h2' icon textAlign='center'>
+                  <Icon name='home' circular />
+                  <Header.Content>Reporte Contagios Estrato</Header.Content>
+                </Header>
+                <GraphBar options={this.state.options3} highcharts={Highcharts} />
+
               </Segment>
             </Container>
 
