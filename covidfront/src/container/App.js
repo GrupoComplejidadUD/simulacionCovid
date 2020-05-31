@@ -6,6 +6,7 @@ import { Container } from 'semantic-ui-react'
 import { Divider, Header, Icon, Image, Dimmer, Loader, Segment, Grid } from 'semantic-ui-react'
 import StatisticFour from '../components/StatisticFour'
 import StatisticContagio from '../components/StatisticContagio'
+import StatisticHead from '../components/StatisticHead'
 
 class App extends React.Component {
 
@@ -64,6 +65,7 @@ class App extends React.Component {
     MapOptions.series.push({ name: "Muertos", data: dataMuertos });
     MapOptions.series.push({ name: "Contagiados", data: dataContagiados });
     MapOptions.xAxis.categories = categorias;
+    
     let variablesGlobales = {
       promMuertes: JSON.parse(responseJson.mean),
       promViajeIda: promedioViajeIda,
@@ -80,7 +82,7 @@ class App extends React.Component {
     MapOptions2.series.push({ name: "Transporte", data: [lugaresContagio.transporte] })
 
 
-    let MapOptions3 = this.createOptions('column', 'Contagios por estrato', 'Contagios')
+    let MapOptions3 = this.createOptions('pie', 'Contagios por estrato', 'Contagios')
     let estratosContagio = responseJson.estratoSocioeconomico;
     MapOptions3.series.push({ name: "Estrato 1", data: [estratosContagio["1"]] })
     MapOptions3.series.push({ name: "Estrato 2", data: [estratosContagio["2"]] })
@@ -127,6 +129,7 @@ class App extends React.Component {
 
             <Container>
               <Segment>
+              <StatisticHead></StatisticHead>
                 <Header as='h2' icon textAlign='center'>
                   <Icon name='users' circular />
                   <Header.Content>Reporte Muertes y contagios</Header.Content>

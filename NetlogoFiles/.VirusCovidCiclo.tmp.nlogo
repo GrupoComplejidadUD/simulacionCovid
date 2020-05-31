@@ -1,4 +1,4 @@
-__includes["utils.nls" "BaseDatosOperaciones.nls" "metodosCreacion.nls"]
+__includes["utils.nls" "BaseDatosOperaciones.nls" "metodosCreacion.nls" "funcionesDistribucion.nls" "moverPoblacion.nls"]
 
 extensions [
   py ; extension ejecutar python desde netlogo
@@ -20,23 +20,23 @@ personas-own
     tiempo-infectado          ;; cuanto tiempo, en dias, la persona ha estado infectada
     coordenadaCasa            ;; coordenadas de la casa
     coordenadaVehiculo        ;; coordenadas del vehiculo
-    estacionCercana           ;;
+    estacionCercana           ;; es la estacion mas cercana a la persona
     lugarPosicion             ;; Lugar en el que esta en x momento
-    lugarInfeccion            ;;
-    tiempoPromedioViajeAlTrabajo       ;;
-    tiempoPromedioViajeACasa      ;;
+    lugarInfeccion            ;; Lugar donde la persona contrajo la infeccion
+    tiempoPromedioViajeAlTrabajo  ;; Tiempo promedio de viaje que permanece en el vehiculo para ir al trabajo
+    tiempoPromedioViajeACasa      ;; Tiempo promedio de viaje que permanece en el vehiculo para ir al trabajo
     irAEstacion?              ;; Para indicar cuando debe volver a casa
-    alTrabajo?                ;;
-    volverACasa?              ;;
-    enCasa?
-    confinado?                ;;
+    alTrabajo?                ;; Flag para indicarle a la persona que debe ir al trabajo
+    volverACasa?              ;; Flag para indicarle a la persona que debe ir a casa
+    enCasa?                   ;; Flag para indicar si la persona esta en casa
+    confinado?                ;; Flag para indicarle a la persona que esta confinada
     tiempoInternoLatencia     ;; tiempo que tiene el infectado para volverse contagioso
     vehiculoPropio?           ;; si tiene vehiculo propio
-    irAlVehiculo?
-    aleatorioProbabilidaInfectar
-    aleatorioProbabilidadMorir
-    aleatorioProbabilidaContacto
-    estratoSocial
+    irAlVehiculo?             ;; Flag para indicarle a la persona que debe ir al vehiculo
+    aleatorioProbabilidaInfectar ;;
+    aleatorioProbabilidadMorir ;;
+    aleatorioProbabilidaContacto ;;
+    estratoSocial             ;; Estrato asignado a la persona
     nivelEnfermedad           ;; leve, grave o critico
     edad ]                    ;; Edad de la persona
 
@@ -61,7 +61,8 @@ to setup
   clear-all
   set insertarDatos? true
   py:setup py:python ; ejemplificar python en py
-  (py:run "from moduloPython import *")
+  (py:run "from moduloPython import *") ;;importar todos los metodos disponibles en mofuloPython.py
+  ;; Lista de atributos que seran almacenados en la base de datos, deben llamarse igual que los atributos de la persona
   set listaAtributosPersona [ "infectada?" "restante-serInmune" "tiempo-infectado" "coordenadaCasa" "edad" "tiempoPromedioViajeAlTrabajo" "tiempoPromedioViajeACasa" "vehiculoPropio?" "estratoSocial" "nivelEnfermedad" "lugarInfeccion"]
   (py:run "resetDataBase('dias')")
   setup-constantes
@@ -94,56 +95,13 @@ to setup-personas
 
 end
 
+
+;; metodo para estrablecer el tiempo promedio de viaje, entre 30 y 90 minutos
 to-report getTiempoPromedioViaje
   report (random (90 - 30) + 30)
 end
 
-;; Funcion para distribuir las personas en diferentes casas, en la casa pueden habitar maximo 2 personas
-to distribuirEnCasasYVehiculos
-  let listaVehiculosPropios [self] of vehiculos
-  let iterador 0
-  ask personas [
-    if vehiculoPropio? and iterador < length listaVehiculosPropios
-    [
-      let vehiculoPropio item iterador listaVehiculosPropios
-      set coordenadaVehiculo list [xcor] of vehiculoPropio [ycor] of vehiculoPropio
-      set iterador iterador + 1
-    ]
-
-    let listaXY getValoresXYporArea
-    setxy (item 0 listaXY)  (item 1 listaXY)
-    while [count personas-here > 2]
-    [
-      set listaXY getValoresXYporArea
-      setxy (item 0 listaXY)  (item 1 listaXY)
-    ]
-    set coordenadaCasa listaXY
-
-    distribuiPoblacionEstrato
-
-  ]
-end
-
-to distribuiPoblacionEstrato
-  let porcentajeSinEstrato count personas with [ estratoSocial = 0 ] / count personas * 100
-
-  ifelse porcentajeSinEstrato = 100 or porcentajeSinEstrato > 98.4
-  [set estratoSocial 6]
-  [ifelse porcentajeSinEstrato > 95.4
-    [set estratoSocial 5]
-    [ifelse porcentajeSinEstrato > 85
-      [set estratoSocial 4]
-      [ifelse porcentajeSinEstrato > 49.4
-        [set estratoSocial 3]
-        [ifelse porcentajeSinEstrato > 9.1
-          [set estratoSocial 2]
-          [set estratoSocial 1]
-        ]
-      ]
-    ]
-  ]
-end
-
+;;metodo para infectar una persona
 to get-infeccion
   set infectada? true
   set lugarInfeccion lugarPosicion
@@ -156,6 +114,7 @@ to get-infeccion
   set contagiados contagiados + 1
 end
 
+;;metodo para infectar a la poblacion inicial de infectados
 to get-infeccion-setup
   set infectada? true
   let probabilidadSerAsintomatico random-float 100
@@ -168,6 +127,7 @@ to get-infeccion-setup
   set contagiados contagiados + 1
 end
 
+;;metodo para volver a una persona saludable
 to get-saludable
   set infectada? false
   set asintomatica? false
@@ -175,6 +135,7 @@ to get-saludable
   set tiempo-infectado 0
 end
 
+;;metodo para curar a una persona
 to curarse
   set infectada? false
   set asintomatica? false
@@ -184,6 +145,7 @@ end
 
 ;; Configuracion constantes del modelo
 to setup-constantes
+  ; 75 años * 365 dias * 24 horas * 60 minutos
   set esperanzaVida 75 * 365 * 24 * 60     ;;
   set capacidad-mundo 300
   set oportunidad-reproduccion 1
@@ -196,21 +158,27 @@ to go
   set horaActual getHora
   let hora item 0 horaActual
   let minuto item 1 horaActual
+
   ask personas [
     if hora = 0 and minuto = 0 [nuevoDiaReset]
     if not confinado? and nivelEnfermedad = "ninguno" [moverse]
     get-edad
     if infectada? [
-      if tiempoInternoLatencia = 0 [set infeccioso? true]
-      set tiempoInternoLatencia tiempoInternoLatencia - 1
+      ;; si el tiempo de latencia de la persona es igual a 0, se convierte en una persona infecciosa
+      ifelse tiempoInternoLatencia = 0
+      [set infeccioso? true]
+      [set tiempoInternoLatencia tiempoInternoLatencia - 1]
       if hora = 0 and minuto = 1 [recuperarse-o-morir]
     ]
     ifelse infectada? and infeccioso? [infectar ] [ ];;reproducir ]
   ]
+  ;; Cada nuevo dia se guarda en la base de datos
   if hora = 0 and minuto = 0 [guardarDiaBaseDatos]
+  ;; al final del dia se guardan los datos en la base de datos
   if hora = 23 and minuto = 58 [guardarDatosDia "fin"]
   actualizar-variables-globales
   update-display
+  ;; cada tick equivale a un minuto
   tick
 end
 
@@ -252,117 +220,7 @@ to recibirAtencionMedica ;; establece el nivel de la enfermedad
   ]
 end
 
-;; las persona se mueven aleatoriamente
-to moverse
-  if infectada? and not asintomatica? and lugarPosicion != "hospital"[
-    let listaHospitales [self] of hospitales
-    let numeroRandom random-float 100
-    let hospitalCercano item 0 listaHospitales
-    if numeroRandom < (%probabilidadIrHospital * estratoSocial) ; entre mas alto el estrato mayor la posibilidad de ir al hospital
-    [
-      ask hospitales [
-        set label camasUCI
-      ]
-      recibirAtencionMedica
-      if nivelEnfermedad = "leve" [
-        setxy item 0 coordenadaCasa item 1 coordenadaCasa
-        let casaHospital casas-on patch-ahead 0
-        ask casaHospital [
-          set color red
-        ]
-      ]
-      if camasUCI > 0 and nivelEnfermedad = "critico"
-      [
-        move-to item 0 listaHospitales
-        set lugarPosicion "hospital"
-        set camasUCI camasUCI - 1
-      ]
-    ]
-  ]
-
-  let hora item 0 horaActual
-  let minuto item 1 horaActual
-  if hora > 5 and hora < 23 and not enCasa? and lugarPosicion != "hospital"
-  [
-
-  let enVehiculo one-of vehiculos-on patch-ahead 0
-  if vehiculoPropio? and alTrabajo? [
-      ifelse irAlVehiculo?
-      [irAlVehiculo]
-      [irAltrabajoTiempoViaje]
-  ]
-
-  let llegoEstacion one-of buses-on patch-ahead 0
-
-  ifelse llegoEstacion != nobody and alTrabajo? and not vehiculoPropio?
-  [
-      set irAEstacion? false
-      set lugarPosicion "transporte"
-      irAltrabajoTiempoViaje
-  ]
-  [if irAEstacion? [irAEstacionCercana]]
-
-  if hora > 17 and lugarPosicion != "casa" [
-      ifelse llegoEstacion != nobody and not volverACasa?
-      [
-        set lugarPosicion "transporte"
-        set tiempoPromedioViajeACasa tiempoPromedioViajeACasa - 1
-        if tiempoPromedioViajeACasa < 1
-        [
-          set volverACasa? true
-        ]
-      ]
-      [
-        ifelse not volverACasa?
-        [
-          ifelse vehiculoPropio?
-          [
-            if irAlVehiculo? [irAlVehiculo]
-            set tiempoPromedioViajeACasa tiempoPromedioViajeACasa - 1
-            if tiempoPromedioViajeACasa < 1
-            [
-              setxy item 0 coordenadaCasa item 1 coordenadaCasa
-              set lugarPosicion "casa"
-            ]
-          ]
-          [
-            irAEstacionCercana
-          ]
-        ]
-        [
-            ifelse int xcor != item 0 coordenadaCasa and int ycor != item 1 coordenadaCasa
-            [
-              face patch item 0 coordenadaCasa item 1 coordenadaCasa
-              fd 0.3
-            ]
-            [
-              setxy item 0 coordenadaCasa item 1 coordenadaCasa
-              set lugarPosicion "casa"
-            ]
-        ]
-      ]
-    ]
-  ]
-end
-
-to irAltrabajoTiempoViaje
-  set tiempoPromedioViajeAlTrabajo tiempoPromedioViajeAlTrabajo - 1
-  if tiempoPromedioViajeAlTrabajo < 1
-  [
-    let destinoFinal min-n-of 1 lugares [distance myself]
-    move-to one-of destinoFinal
-    set alTrabajo? false
-    if vehiculoPropio? [set irAlVehiculo? true]
-    set lugarPosicion "trabajo"
-  ]
-end
-
-to irAlVehiculo
-  set irAlVehiculo? false
-  setxy item 0 coordenadaVehiculo item 1 coordenadaVehiculo
-end
-
-
+;; Restablece y recalcula las variables de las personas para el dia
 to nuevoDiaReset
   set insertarDatos? true
   set volverACasa? false
@@ -383,25 +241,21 @@ to nuevoDiaReset
 
 end
 
-
-to irAEstacionCercana
-  set estacionCercana min-one-of buses [ distance myself ]
-  face estacionCercana
-  fd 0.3
-end
-
-;; si una persona esta infectada, infectara a otras personas en el mismo patch. Las personas inmunes no se infectan
+;; si una persona esta infectada, hay una probabilidad de que infecte a otras personas en el mismo patch. Las personas inmunes no se infectan
 to infectar
     ask other personas-here with [ not infectada? and not immune? ]
     [
+    ;; dependiendo del lugar en el que se encuentre la persona hay una probabilidad de tener contacto con otras personas
     let probabilidadInteraccionLugar getProbabilidadContacto
     if aleatorioProbabilidaContacto < probabilidadInteraccionLugar
     [
+      ;;despues de tener contacto hay una probabilidad de la persona se infecte
       if aleatorioProbabilidaInfectar < infeccioso
       [ get-infeccion ] ]
     ]
 end
 
+;;metodo que calcula la probabilidad de contacto entre las personas
 to-report getProbabilidadContacto
   if lugarPosicion = "transporte" [report %probabilidadContactoTransporte ]
   if lugarPosicion = "trabajo" [ report %probabilidadContactoTrabajo ]
@@ -410,7 +264,10 @@ end
 
 ;;Una vez que la persona ha estado enferma, o se recupera(volviendose inmune) o muere
 to recuperarse-o-morir
-  if lugarPosicion = "hospital" [set aleatorioProbabilidadMorir (aleatorioProbabilidadMorir / 10)]
+  ;;si esta en un hospital su probabilidad de morir es menor
+  if lugarPosicion = "hospital"
+  [set aleatorioProbabilidadMorir (aleatorioProbabilidadMorir / 10)]
+
   if aleatorioProbabilidadMorir < getProbabilidadMorir edad
   [ show ((edad / 60) / 24)/ 365
     show aleatorioProbabilidadMorir
@@ -431,6 +288,7 @@ to recuperarse-o-morir
     ]
     curarse
     set nivelEnfermedad "ninguno"
+    ;;cambia el color de la casa a blanco
     let casaHospital casas-on patch-ahead 0
     ask casaHospital [
         set color white

@@ -1,0 +1,45 @@
+;; Funcion para distribuir las personas en diferentes casas, en la casa pueden habitar maximo 2 personas
+to distribuirEnCasasYVehiculos
+  let listaVehiculosPropios [self] of vehiculos
+  let iterador 0
+  ask personas [
+    if vehiculoPropio? and iterador < length listaVehiculosPropios
+    [
+      let vehiculoPropio item iterador listaVehiculosPropios
+      set coordenadaVehiculo list [xcor] of vehiculoPropio [ycor] of vehiculoPropio
+      set iterador iterador + 1
+    ]
+
+    let listaXY getValoresXYporArea
+    setxy (item 0 listaXY)  (item 1 listaXY)
+    while [count personas-here > 2]
+    [
+      set listaXY getValoresXYporArea
+      setxy (item 0 listaXY)  (item 1 listaXY)
+    ]
+    set coordenadaCasa listaXY
+
+    distribuiPoblacionEstrato
+
+  ]
+end
+
+to distribuiPoblacionEstrato
+  let porcentajeSinEstrato count personas with [ estratoSocial = 0 ] / count personas * 100
+
+  ifelse porcentajeSinEstrato = 100 or porcentajeSinEstrato > 98.4
+  [set estratoSocial 6]
+  [ifelse porcentajeSinEstrato > 95.4
+    [set estratoSocial 5]
+    [ifelse porcentajeSinEstrato > 85
+      [set estratoSocial 4]
+      [ifelse porcentajeSinEstrato > 49.4
+        [set estratoSocial 3]
+        [ifelse porcentajeSinEstrato > 9.1
+          [set estratoSocial 2]
+          [set estratoSocial 1]
+        ]
+      ]
+    ]
+  ]
+end
