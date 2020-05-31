@@ -74,6 +74,8 @@ class App extends React.Component {
       totalContagiados: totalContagiados
     }
 
+    console.log(variablesGlobales)
+
     let MapOptions2 = this.createOptions('column', 'Lugares de contagio', 'Contagios')
     let lugaresContagio = responseJson.lugaresContagio;
     MapOptions2.series.push({ name: "Trabajo", data: [lugaresContagio.trabajo] })

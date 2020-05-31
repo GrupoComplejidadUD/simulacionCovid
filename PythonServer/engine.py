@@ -55,8 +55,8 @@ def getData():
             total_contagios = total_contagios + contagiados_por_dia
             personas = document['personas']
             data_frame_personas = pandas.DataFrame(personas)
-            tiempo_promedio_ida.append(data_frame_personas['tiempoPromedioViajeAlTrabajo'].mean())
-            tiempo_promedio_vuelta.append(data_frame_personas['tiempoPromedioViajeACasa'].mean())
+            tiempo_promedio_ida.append(data_frame_personas['tiempoPromedioViajeAlTrabajoValor'].mean())
+            tiempo_promedio_vuelta.append(data_frame_personas['tiempoPromedioViajeACasaValor'].mean())
             output.append({'dia': document['dia'], 'muertos': muertes_por_dia, "contagiados": contagiados_por_dia})
 
     data_frame_dias = pandas.DataFrame(output, columns=['dia', 'muertos'])

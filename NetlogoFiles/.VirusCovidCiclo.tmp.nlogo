@@ -23,8 +23,10 @@ personas-own
     estacionCercana           ;; es la estacion mas cercana a la persona
     lugarPosicion             ;; Lugar en el que esta en x momento
     lugarInfeccion            ;; Lugar donde la persona contrajo la infeccion
+    tiempoPromedioViajeAlTrabajoValor  ;; Tiempo promedio de viaje que permanece en el vehiculo para ir al trabajo valor
+    tiempoPromedioViajeACasaValor      ;; Tiempo promedio de viaje que permanece en el vehiculo para ir a casa valor
     tiempoPromedioViajeAlTrabajo  ;; Tiempo promedio de viaje que permanece en el vehiculo para ir al trabajo
-    tiempoPromedioViajeACasa      ;; Tiempo promedio de viaje que permanece en el vehiculo para ir al trabajo
+    tiempoPromedioViajeACasa      ;; Tiempo promedio de viaje que permanece en el vehiculo para ir a casa
     irAEstacion?              ;; Para indicar cuando debe volver a casa
     alTrabajo?                ;; Flag para indicarle a la persona que debe ir al trabajo
     volverACasa?              ;; Flag para indicarle a la persona que debe ir a casa
@@ -63,7 +65,7 @@ to setup
   py:setup py:python ; ejemplificar python en py
   (py:run "from moduloPython import *") ;;importar todos los metodos disponibles en mofuloPython.py
   ;; Lista de atributos que seran almacenados en la base de datos, deben llamarse igual que los atributos de la persona
-  set listaAtributosPersona [ "infectada?" "restante-serInmune" "tiempo-infectado" "coordenadaCasa" "edad" "tiempoPromedioViajeAlTrabajo" "tiempoPromedioViajeACasa" "vehiculoPropio?" "estratoSocial" "nivelEnfermedad" "lugarInfeccion"]
+  set listaAtributosPersona [ "infectada?" "restante-serInmune" "tiempo-infectado" "coordenadaCasa" "edad" "tiempoPromedioViajeAlTrabajoValor" "tiempoPromedioViajeACasaValor" "vehiculoPropio?" "estratoSocial" "nivelEnfermedad" "lugarInfeccion"]
   (py:run "resetDataBase('dias')")
   setup-constantes
   setup-personas
@@ -235,6 +237,8 @@ to nuevoDiaReset
   set enCasa? false
   set tiempoPromedioViajeACasa getTiempoPromedioViaje
   set tiempoPromedioViajeAlTrabajo getTiempoPromedioViaje
+  set tiempoPromedioViajeACasaValor getTiempoPromedioViaje
+  set tiempoPromedioViajeAlTrabajoValor getTiempoPromedioViaje
   set aleatorioProbabilidaInfectar random-float 100
   set aleatorioProbabilidadMorir random-float 100
   set aleatorioProbabilidaContacto random-float 100
@@ -565,7 +569,7 @@ SLIDER
 %infectadosAsintomaticos
 0
 100
-78.0
+79.0
 1
 1
 %
@@ -647,7 +651,7 @@ camasUCI
 camasUCI
 0
 100
-14.0
+9.0
 1
 1
 NIL
