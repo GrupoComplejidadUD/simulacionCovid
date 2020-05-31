@@ -20,7 +20,6 @@ end
 
 to guardarDatosDia [parametro]
   (py:run "resetDict()")
-  if parametro = "fin" [guardarPersonasBaseDatos]
   let dia getHora
   let numeroDia item 2 dia
   py:set "variable" parametro
@@ -31,6 +30,7 @@ to guardarDatosDia [parametro]
   [updateDictPython "contagiados" 0] ;; Esto evita que no se cuenten los infectados introducidos al inicio de la simulacion
   [updateDictPython "contagiados" contagiados]
   (py:run "agregarInformacionDia(id, 'dias', variable)")
+  if parametro = "fin" [guardarPersonasBaseDatos]
 end
 
 to actualizarLugarInfeccion
