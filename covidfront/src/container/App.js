@@ -82,7 +82,7 @@ class App extends React.Component {
     MapOptions2.series.push({ name: "Transporte", data: [lugaresContagio.transporte] })
 
 
-    let MapOptions3 = this.createOptions('pie', 'Contagios por estrato', 'Contagios')
+    let MapOptions3 = this.createOptions('column', 'Contagios por estrato', 'Contagios')
     let estratosContagio = responseJson.estratoSocioeconomico;
     MapOptions3.series.push({ name: "Estrato 1", data: [estratosContagio["1"]] })
     MapOptions3.series.push({ name: "Estrato 2", data: [estratosContagio["2"]] })
