@@ -1,4 +1,4 @@
-__includes["utils.nls" "BaseDatosOperaciones.nls" "metodosCreacion.nls"]
+__includes["utils.nls" "BaseDatosOperaciones.nls" "metodosCreacion.nls" "moverPoblacion.nls" "funcionesDistribucion.nls" "hospitales.nls"]
 
 extensions [
   py ; extension ejecutar python desde netlogo
@@ -25,6 +25,8 @@ personas-own
     lugarInfeccion            ;;
     tiempoPromedioViajeAlTrabajo       ;;
     tiempoPromedioViajeACasa      ;;
+    tiempoPromedioViajeAlTrabajoValor       ;;
+    tiempoPromedioViajeACasaValor
     irAEstacion?              ;; Para indicar cuando debe volver a casa
     alTrabajo?                ;;
     volverACasa?              ;;
@@ -62,7 +64,7 @@ to setup
   set insertarDatos? true
   py:setup py:python ; ejemplificar python en py
   (py:run "from moduloPython import *")
-  set listaAtributosPersona [ "infectada?" "restante-serInmune" "tiempo-infectado" "coordenadaCasa" "edad" "tiempoPromedioViajeAlTrabajo" "tiempoPromedioViajeACasa" "vehiculoPropio?" "estratoSocial" "nivelEnfermedad" "lugarInfeccion"]
+  set listaAtributosPersona [ "infectada?" "restante-serInmune" "tiempo-infectado" "coordenadaCasa" "edad" "tiempoPromedioViajeAlTrabajoValor" "tiempoPromedioViajeACasaValor" "vehiculoPropio?" "estratoSocial" "nivelEnfermedad" "lugarInfeccion"]
   (py:run "resetDataBase('dias')")
   setup-constantes
   setup-personas
@@ -96,52 +98,6 @@ end
 
 to-report getTiempoPromedioViaje
   report (random (90 - 30) + 30)
-end
-
-;; Funcion para distribuir las personas en diferentes casas, en la casa pueden habitar maximo 2 personas
-to distribuirEnCasasYVehiculos
-  let listaVehiculosPropios [self] of vehiculos
-  let iterador 0
-  ask personas [
-    if vehiculoPropio? and iterador < length listaVehiculosPropios
-    [
-      let vehiculoPropio item iterador listaVehiculosPropios
-      set coordenadaVehiculo list [xcor] of vehiculoPropio [ycor] of vehiculoPropio
-      set iterador iterador + 1
-    ]
-
-    let listaXY getValoresXYporArea
-    setxy (item 0 listaXY)  (item 1 listaXY)
-    while [count personas-here > 2]
-    [
-      set listaXY getValoresXYporArea
-      setxy (item 0 listaXY)  (item 1 listaXY)
-    ]
-    set coordenadaCasa listaXY
-
-    distribuiPoblacionEstrato
-
-  ]
-end
-
-to distribuiPoblacionEstrato
-  let porcentajeSinEstrato count personas with [ estratoSocial = 0 ] / count personas * 100
-
-  ifelse porcentajeSinEstrato = 100 or porcentajeSinEstrato > 98.4
-  [set estratoSocial 6]
-  [ifelse porcentajeSinEstrato > 95.4
-    [set estratoSocial 5]
-    [ifelse porcentajeSinEstrato > 85
-      [set estratoSocial 4]
-      [ifelse porcentajeSinEstrato > 49.4
-        [set estratoSocial 3]
-        [ifelse porcentajeSinEstrato > 9.1
-          [set estratoSocial 2]
-          [set estratoSocial 1]
-        ]
-      ]
-    ]
-  ]
 end
 
 to get-infeccion
@@ -203,7 +159,7 @@ to go
     if infectada? [
       if tiempoInternoLatencia = 0 [set infeccioso? true]
       set tiempoInternoLatencia tiempoInternoLatencia - 1
-      if hora = 0 and minuto = 1 [recuperarse-o-morir]
+      if hora = 0 and minuto = 1 [recuperarse-o-morir] ;; una vez al dia se evalua la posibilidad de morir
     ]
     ifelse infectada? and infeccioso? [infectar ] [ ];;reproducir ]
   ]
@@ -242,127 +198,6 @@ to get-edad
   if infectada? [ set tiempo-infectado tiempo-infectado + 1 ]
 end
 
-to recibirAtencionMedica ;; establece el nivel de la enfermedad
-  let numeroRandom random-float 100
-  ifelse numeroRandom < 80
-  [set nivelEnfermedad "leve"]
-  [ifelse numeroRandom < 94
-    [set nivelEnfermedad "grave"]
-    [set nivelEnfermedad "critico"]
-  ]
-end
-
-;; las persona se mueven aleatoriamente
-to moverse
-  if infectada? and not asintomatica? and lugarPosicion != "hospital"[
-    let listaHospitales [self] of hospitales
-    let numeroRandom random-float 100
-    let hospitalCercano item 0 listaHospitales
-    if numeroRandom < (%probabilidadIrHospital * estratoSocial) ; entre mas alto el estrato mayor la posibilidad de ir al hospital
-    [
-      ask hospitales [
-        set label camasUCI
-      ]
-      recibirAtencionMedica
-      if nivelEnfermedad = "leve" [
-        setxy item 0 coordenadaCasa item 1 coordenadaCasa
-        let casaHospital casas-on patch-ahead 0
-        ask casaHospital [
-          set color red
-        ]
-      ]
-      if camasUCI > 0 and nivelEnfermedad = "critico"
-      [
-        move-to item 0 listaHospitales
-        set lugarPosicion "hospital"
-        set camasUCI camasUCI - 1
-      ]
-    ]
-  ]
-
-  let hora item 0 horaActual
-  let minuto item 1 horaActual
-  if hora > 5 and hora < 23 and not enCasa? and lugarPosicion != "hospital"
-  [
-
-  let enVehiculo one-of vehiculos-on patch-ahead 0
-  if vehiculoPropio? and alTrabajo? [
-      ifelse irAlVehiculo?
-      [irAlVehiculo]
-      [irAltrabajoTiempoViaje]
-  ]
-
-  let llegoEstacion one-of buses-on patch-ahead 0
-
-  ifelse llegoEstacion != nobody and alTrabajo? and not vehiculoPropio?
-  [
-      set irAEstacion? false
-      set lugarPosicion "transporte"
-      irAltrabajoTiempoViaje
-  ]
-  [if irAEstacion? [irAEstacionCercana]]
-
-  if hora > 17 and lugarPosicion != "casa" [
-      ifelse llegoEstacion != nobody and not volverACasa?
-      [
-        set lugarPosicion "transporte"
-        set tiempoPromedioViajeACasa tiempoPromedioViajeACasa - 1
-        if tiempoPromedioViajeACasa < 1
-        [
-          set volverACasa? true
-        ]
-      ]
-      [
-        ifelse not volverACasa?
-        [
-          ifelse vehiculoPropio?
-          [
-            if irAlVehiculo? [irAlVehiculo]
-            set tiempoPromedioViajeACasa tiempoPromedioViajeACasa - 1
-            if tiempoPromedioViajeACasa < 1
-            [
-              setxy item 0 coordenadaCasa item 1 coordenadaCasa
-              set lugarPosicion "casa"
-            ]
-          ]
-          [
-            irAEstacionCercana
-          ]
-        ]
-        [
-            ifelse int xcor != item 0 coordenadaCasa and int ycor != item 1 coordenadaCasa
-            [
-              face patch item 0 coordenadaCasa item 1 coordenadaCasa
-              fd 0.3
-            ]
-            [
-              setxy item 0 coordenadaCasa item 1 coordenadaCasa
-              set lugarPosicion "casa"
-            ]
-        ]
-      ]
-    ]
-  ]
-end
-
-to irAltrabajoTiempoViaje
-  set tiempoPromedioViajeAlTrabajo tiempoPromedioViajeAlTrabajo - 1
-  if tiempoPromedioViajeAlTrabajo < 1
-  [
-    let destinoFinal min-n-of 1 lugares [distance myself]
-    move-to one-of destinoFinal
-    set alTrabajo? false
-    if vehiculoPropio? [set irAlVehiculo? true]
-    set lugarPosicion "trabajo"
-  ]
-end
-
-to irAlVehiculo
-  set irAlVehiculo? false
-  setxy item 0 coordenadaVehiculo item 1 coordenadaVehiculo
-end
-
-
 to nuevoDiaReset
   set insertarDatos? true
   set volverACasa? false
@@ -377,17 +212,12 @@ to nuevoDiaReset
   set enCasa? false
   set tiempoPromedioViajeACasa getTiempoPromedioViaje
   set tiempoPromedioViajeAlTrabajo getTiempoPromedioViaje
+  set tiempoPromedioViajeACasaValor getTiempoPromedioViaje
+  set tiempoPromedioViajeAlTrabajoValor getTiempoPromedioViaje
   set aleatorioProbabilidaInfectar random-float 100
   set aleatorioProbabilidadMorir random-float 100
   set aleatorioProbabilidaContacto random-float 100
 
-end
-
-
-to irAEstacionCercana
-  set estacionCercana min-one-of buses [ distance myself ]
-  face estacionCercana
-  fd 0.3
 end
 
 ;; si una persona esta infectada, infectara a otras personas en el mismo patch. Las personas inmunes no se infectan
@@ -507,7 +337,7 @@ duracionVirus
 duracionVirus
 0.0
 99.0
-8.0
+14.0
 1.0
 1
 dias
@@ -707,7 +537,7 @@ SLIDER
 %infectadosAsintomaticos
 0
 100
-78.0
+80.0
 1
 1
 %
@@ -744,7 +574,7 @@ SLIDER
 %probabilidadContactoTransporte
 0
 100
-29.0
+13.0
 1
 1
 NIL
@@ -759,7 +589,7 @@ SLIDER
 %probabilidadContactoTrabajo
 0
 100
-26.0
+15.0
 1
 1
 NIL
@@ -789,7 +619,7 @@ camasUCI
 camasUCI
 0
 100
-14.0
+13.0
 1
 1
 NIL
@@ -804,7 +634,7 @@ SLIDER
 %probabilidadIrHospital
 0.0
 100.0
-15.4
+6.6
 0.2
 1
 %

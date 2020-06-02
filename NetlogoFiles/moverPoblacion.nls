@@ -1,29 +1,9 @@
 ;; las persona se mueven aleatoriamente
 to moverse
   if infectada? and not asintomatica? and lugarPosicion != "hospital"[
-    let listaHospitales [self] of hospitales
     let numeroRandom random-float 100
-    let hospitalCercano item 0 listaHospitales
     if numeroRandom < (%probabilidadIrHospital * estratoSocial) ; entre mas alto el estrato mayor la posibilidad de ir al hospital
-    [
-      ask hospitales [
-        set label camasUCI
-      ]
-      recibirAtencionMedica
-      if nivelEnfermedad = "leve" [
-        setxy item 0 coordenadaCasa item 1 coordenadaCasa
-        let casaHospital casas-on patch-ahead 0
-        ask casaHospital [
-          set color red
-        ]
-      ]
-      if camasUCI > 0 and nivelEnfermedad = "critico"
-      [
-        move-to item 0 listaHospitales
-        set lugarPosicion "hospital"
-        set camasUCI camasUCI - 1
-      ]
-    ]
+    [irHospital]
   ]
 
   let hora item 0 horaActual
@@ -89,6 +69,12 @@ to moverse
       ]
     ]
   ]
+end
+
+to irAEstacionCercana
+  set estacionCercana min-one-of buses [ distance myself ]
+  face estacionCercana
+  fd 0.3
 end
 
 to irAltrabajoTiempoViaje

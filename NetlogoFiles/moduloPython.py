@@ -5,8 +5,9 @@ import subprocess
 
 dataBaseName = "SimulacionCovid"
 dataBaseUrl = "localhost"
-dataBasePort = 27017    
+dataBasePort = 27017
 globalDict = {}
+valores_semilla = {}
 
 
 def getDataBaseClient():
@@ -26,6 +27,15 @@ def updateDict(key, value):
 
 def resetDict():
     globalDict.clear()
+
+def update_variables_semilla(key, value):
+    valores_semilla.update({key:value})
+
+def add_variables_semilla_to_globalDict():
+    updateDict("variablesSemilla", valores_semilla)
+
+def reset_variables_semilla():
+    valores_semilla.clear()
 
 
 def insertarDictMongo(nombreColeccion):

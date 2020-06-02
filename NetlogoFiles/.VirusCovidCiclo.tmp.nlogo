@@ -1,4 +1,4 @@
-__includes["utils.nls" "BaseDatosOperaciones.nls" "metodosCreacion.nls" "funcionesDistribucion.nls" "moverPoblacion.nls"]
+__includes["utils.nls" "BaseDatosOperaciones.nls" "metodosCreacion.nls" "moverPoblacion.nls" "funcionesDistribucion.nls" "hospitales.nls"]
 
 extensions [
   py ; extension ejecutar python desde netlogo
@@ -20,25 +20,25 @@ personas-own
     tiempo-infectado          ;; cuanto tiempo, en dias, la persona ha estado infectada
     coordenadaCasa            ;; coordenadas de la casa
     coordenadaVehiculo        ;; coordenadas del vehiculo
-    estacionCercana           ;; es la estacion mas cercana a la persona
+    estacionCercana           ;;
     lugarPosicion             ;; Lugar en el que esta en x momento
-    lugarInfeccion            ;; Lugar donde la persona contrajo la infeccion
-    tiempoPromedioViajeAlTrabajoValor  ;; Tiempo promedio de viaje que permanece en el vehiculo para ir al trabajo valor
-    tiempoPromedioViajeACasaValor      ;; Tiempo promedio de viaje que permanece en el vehiculo para ir a casa valor
-    tiempoPromedioViajeAlTrabajo  ;; Tiempo promedio de viaje que permanece en el vehiculo para ir al trabajo
-    tiempoPromedioViajeACasa      ;; Tiempo promedio de viaje que permanece en el vehiculo para ir a casa
+    lugarInfeccion            ;;
+    tiempoPromedioViajeAlTrabajo       ;;
+    tiempoPromedioViajeACasa      ;;
+    tiempoPromedioViajeAlTrabajoValor       ;;
+    tiempoPromedioViajeACasaValor
     irAEstacion?              ;; Para indicar cuando debe volver a casa
-    alTrabajo?                ;; Flag para indicarle a la persona que debe ir al trabajo
-    volverACasa?              ;; Flag para indicarle a la persona que debe ir a casa
-    enCasa?                   ;; Flag para indicar si la persona esta en casa
-    confinado?                ;; Flag para indicarle a la persona que esta confinada
+    alTrabajo?                ;;
+    volverACasa?              ;;
+    enCasa?
+    confinado?                ;;
     tiempoInternoLatencia     ;; tiempo que tiene el infectado para volverse contagioso
     vehiculoPropio?           ;; si tiene vehiculo propio
-    irAlVehiculo?             ;; Flag para indicarle a la persona que debe ir al vehiculo
-    aleatorioProbabilidaInfectar ;;
-    aleatorioProbabilidadMorir ;;
-    aleatorioProbabilidaContacto ;;
-    estratoSocial             ;; Estrato asignado a la persona
+    irAlVehiculo?
+    aleatorioProbabilidaInfectar
+    aleatorioProbabilidadMorir
+    aleatorioProbabilidaContacto
+    estratoSocial
     nivelEnfermedad           ;; leve, grave o critico
     edad ]                    ;; Edad de la persona
 
@@ -63,14 +63,14 @@ to setup
   clear-all
   set insertarDatos? true
   py:setup py:python ; ejemplificar python en py
-  (py:run "from moduloPython import *") ;;importar todos los metodos disponibles en mofuloPython.py
-  ;; Lista de atributos que seran almacenados en la base de datos, deben llamarse igual que los atributos de la persona
+  (py:run "from moduloPython import *")
   set listaAtributosPersona [ "infectada?" "restante-serInmune" "tiempo-infectado" "coordenadaCasa" "edad" "tiempoPromedioViajeAlTrabajoValor" "tiempoPromedioViajeACasaValor" "vehiculoPropio?" "estratoSocial" "nivelEnfermedad" "lugarInfeccion"]
   (py:run "resetDataBase('dias')")
   setup-constantes
   setup-personas
   actualizar-variables-globales
   update-display
+
   reset-ticks
 end
 
@@ -97,13 +97,10 @@ to setup-personas
 
 end
 
-
-;; metodo para estrablecer el tiempo promedio de viaje, entre 30 y 90 minutos
 to-report getTiempoPromedioViaje
   report (random (90 - 30) + 30)
 end
 
-;;metodo para infectar una persona
 to get-infeccion
   set infectada? true
   set lugarInfeccion lugarPosicion
@@ -116,7 +113,6 @@ to get-infeccion
   set contagiados contagiados + 1
 end
 
-;;metodo para infectar a la poblacion inicial de infectados
 to get-infeccion-setup
   set infectada? true
   let probabilidadSerAsintomatico random-float 100
@@ -129,7 +125,6 @@ to get-infeccion-setup
   set contagiados contagiados + 1
 end
 
-;;metodo para volver a una persona saludable
 to get-saludable
   set infectada? false
   set asintomatica? false
@@ -137,7 +132,6 @@ to get-saludable
   set tiempo-infectado 0
 end
 
-;;metodo para curar a una persona
 to curarse
   set infectada? false
   set asintomatica? false
@@ -147,7 +141,6 @@ end
 
 ;; Configuracion constantes del modelo
 to setup-constantes
-  ; 75 años * 365 dias * 24 horas * 60 minutos
   set esperanzaVida 75 * 365 * 24 * 60     ;;
   set capacidad-mundo 300
   set oportunidad-reproduccion 1
@@ -160,27 +153,21 @@ to go
   set horaActual getHora
   let hora item 0 horaActual
   let minuto item 1 horaActual
-
   ask personas [
     if hora = 0 and minuto = 0 [nuevoDiaReset]
     if not confinado? and nivelEnfermedad = "ninguno" [moverse]
     get-edad
     if infectada? [
-      ;; si el tiempo de latencia de la persona es igual a 0, se convierte en una persona infecciosa
-      ifelse tiempoInternoLatencia = 0
-      [set infeccioso? true]
-      [set tiempoInternoLatencia tiempoInternoLatencia - 1]
-      if hora = 0 and minuto = 1 [recuperarse-o-morir]
+      if tiempoInternoLatencia = 0 [set infeccioso? true]
+      set tiempoInternoLatencia tiempoInternoLatencia - 1
+      if hora = 0 and minuto = 1 [recuperarse-o-morir] ;; una vez al dia se evalua la posibilidad de morir
     ]
     ifelse infectada? and infeccioso? [infectar ] [ ];;reproducir ]
   ]
-  ;; Cada nuevo dia se guarda en la base de datos
   if hora = 0 and minuto = 0 [guardarDiaBaseDatos]
-  ;; al final del dia se guardan los datos en la base de datos
   if hora = 23 and minuto = 58 [guardarDatosDia "fin"]
   actualizar-variables-globales
   update-display
-  ;; cada tick equivale a un minuto
   tick
 end
 
@@ -212,17 +199,6 @@ to get-edad
   if infectada? [ set tiempo-infectado tiempo-infectado + 1 ]
 end
 
-to recibirAtencionMedica ;; establece el nivel de la enfermedad
-  let numeroRandom random-float 100
-  ifelse numeroRandom < 80
-  [set nivelEnfermedad "leve"]
-  [ifelse numeroRandom < 94
-    [set nivelEnfermedad "grave"]
-    [set nivelEnfermedad "critico"]
-  ]
-end
-
-;; Restablece y recalcula las variables de las personas para el dia
 to nuevoDiaReset
   set insertarDatos? true
   set volverACasa? false
@@ -245,21 +221,18 @@ to nuevoDiaReset
 
 end
 
-;; si una persona esta infectada, hay una probabilidad de que infecte a otras personas en el mismo patch. Las personas inmunes no se infectan
+;; si una persona esta infectada, infectara a otras personas en el mismo patch. Las personas inmunes no se infectan
 to infectar
     ask other personas-here with [ not infectada? and not immune? ]
     [
-    ;; dependiendo del lugar en el que se encuentre la persona hay una probabilidad de tener contacto con otras personas
     let probabilidadInteraccionLugar getProbabilidadContacto
     if aleatorioProbabilidaContacto < probabilidadInteraccionLugar
     [
-      ;;despues de tener contacto hay una probabilidad de la persona se infecte
       if aleatorioProbabilidaInfectar < infeccioso
       [ get-infeccion ] ]
     ]
 end
 
-;;metodo que calcula la probabilidad de contacto entre las personas
 to-report getProbabilidadContacto
   if lugarPosicion = "transporte" [report %probabilidadContactoTransporte ]
   if lugarPosicion = "trabajo" [ report %probabilidadContactoTrabajo ]
@@ -268,10 +241,7 @@ end
 
 ;;Una vez que la persona ha estado enferma, o se recupera(volviendose inmune) o muere
 to recuperarse-o-morir
-  ;;si esta en un hospital su probabilidad de morir es menor
-  if lugarPosicion = "hospital"
-  [set aleatorioProbabilidadMorir (aleatorioProbabilidadMorir / 10)]
-
+  if lugarPosicion = "hospital" [set aleatorioProbabilidadMorir (aleatorioProbabilidadMorir / 10)]
   if aleatorioProbabilidadMorir < getProbabilidadMorir edad
   [ show ((edad / 60) / 24)/ 365
     show aleatorioProbabilidadMorir
@@ -292,7 +262,6 @@ to recuperarse-o-morir
     ]
     curarse
     set nivelEnfermedad "ninguno"
-    ;;cambia el color de la casa a blanco
     let casaHospital casas-on patch-ahead 0
     ask casaHospital [
         set color white
@@ -369,7 +338,7 @@ duracionVirus
 duracionVirus
 0.0
 99.0
-8.0
+14.0
 1.0
 1
 dias
@@ -569,7 +538,7 @@ SLIDER
 %infectadosAsintomaticos
 0
 100
-79.0
+80.0
 1
 1
 %
@@ -606,7 +575,7 @@ SLIDER
 %probabilidadContactoTransporte
 0
 100
-29.0
+13.0
 1
 1
 NIL
@@ -621,7 +590,7 @@ SLIDER
 %probabilidadContactoTrabajo
 0
 100
-26.0
+15.0
 1
 1
 NIL
@@ -651,7 +620,7 @@ camasUCI
 camasUCI
 0
 100
-9.0
+13.0
 1
 1
 NIL
@@ -666,7 +635,7 @@ SLIDER
 %probabilidadIrHospital
 0.0
 100.0
-15.4
+6.6
 0.2
 1
 %

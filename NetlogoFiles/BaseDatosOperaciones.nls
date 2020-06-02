@@ -1,4 +1,5 @@
 to guardarPersonasBaseDatos
+  (py:run "resetDict()")
   let dia getHora
   ask personas [
       updateDictPython "_id" who
@@ -8,11 +9,30 @@ to guardarPersonasBaseDatos
   ]
 end
 
+to insertarVariablesSemilla
+  (py:run "reset_variables_semilla()")
+  updateVariablesSemilla "poblacionInicial" numero-personas
+  updateVariablesSemilla "numeroInfectados" numeroInfectados
+  updateVariablesSemilla "infeccioso" infeccioso
+  updateVariablesSemilla "duracionVirus" duracionVirus
+  updateVariablesSemilla "tiempoLatencia" tiempoLatencia
+  updateVariablesSemilla "%confinamiento" %confinamiento
+  updateVariablesSemilla "%vehiculoPropio" %vehiculoPropio
+  updateVariablesSemilla "%infectadosAsintomaticos" %infectadosAsintomaticos
+  updateVariablesSemilla "%probabilidadContactoTransporte" %probabilidadContactoTransporte
+  updateVariablesSemilla "%probabilidadContactoTrabajo" %probabilidadContactoTrabajo
+  updateVariablesSemilla "camasUCI" camasUCI
+  updateVariablesSemilla "%probabilidadIrHospital" %probabilidadIrHospital
+  (py:run "add_variables_semilla_to_globalDict()")
+  
+end
+
 to guardarDiaBaseDatos
   let dia getHora
   (py:run "resetDict()")
   updateDictPython "_id" item 2 dia
   updateDictPython "dia" item 2 dia
+  if item 2 dia = 0 [insertarVariablesSemilla]
   (py:run "insertarDictMongo('dias')")
   (py:run "resetDict()")
   guardarDatosDia "inicio"
@@ -27,7 +47,7 @@ to guardarDatosDia [parametro]
   updateDictPython "%infectadosInicio" %infectados
   updateDictPython "muertos" muertos
   ifelse numeroDia = 0 and parametro = "inicio" 
-  [updateDictPython "contagiados" 0] ;; Esto evita que no se cuenten los infectados introducidos al inicio de la simulacion
+  [updateDictPython "contagiados" 0 ];; Esto evita que no se cuenten los infectados introducidos al inicio de la simulacion
   [updateDictPython "contagiados" contagiados]
   (py:run "agregarInformacionDia(id, 'dias', variable)")
   if parametro = "fin" [guardarPersonasBaseDatos]
@@ -56,4 +76,11 @@ to updateDictPython [key value]
   py:set "key" key
   py:set "value" value
   (py:run "updateDict(key, value)")
+end
+
+
+to updateVariablesSemilla [key value]
+  py:set "key" key
+  py:set "value" value
+  (py:run "update_variables_semilla(key, value)")
 end

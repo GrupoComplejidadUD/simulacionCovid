@@ -1,0 +1,31 @@
+to irHospital
+  let listaHospitales [self] of hospitales
+  let hospitalCercano item 0 listaHospitales
+  ask hospitales [
+    set label camasUCI
+  ]
+  recibirAtencionMedica
+  if nivelEnfermedad = "leve" [
+    setxy item 0 coordenadaCasa item 1 coordenadaCasa
+    let casaHospital casas-on patch-ahead 0
+    ask casaHospital [
+      set color red
+    ]
+  ]
+  if camasUCI > 0 and nivelEnfermedad = "critico"
+  [
+    move-to item 0 listaHospitales
+    set lugarPosicion "hospital"
+    set camasUCI camasUCI - 1
+  ]
+end
+
+to recibirAtencionMedica ;; establece el nivel de la enfermedad
+  let numeroRandom random-float 100
+  ifelse numeroRandom < 80
+  [set nivelEnfermedad "leve"]
+  [ifelse numeroRandom < 94
+    [set nivelEnfermedad "grave"]
+    [set nivelEnfermedad "critico"]
+  ]
+end

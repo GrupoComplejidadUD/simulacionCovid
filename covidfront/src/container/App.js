@@ -7,6 +7,7 @@ import { Divider, Header, Icon, Image, Dimmer, Loader, Segment, Grid } from 'sem
 import StatisticFour from '../components/StatisticFour'
 import StatisticContagio from '../components/StatisticContagio'
 import StatisticHead from '../components/StatisticHead'
+import StatisticSemilla from '../components/StatisticSemilla'
 
 class App extends React.Component {
 
@@ -18,7 +19,8 @@ class App extends React.Component {
       options2: null,
       options3: null,
       variablesGlobales: null,
-      lugaresContagio: null
+      lugaresContagio: null,
+      valoresSemilla: null
     };
   }
 
@@ -61,7 +63,6 @@ class App extends React.Component {
       categorias.push("dia " + result.dia)
     }
 
-    console.log(categorias)
     MapOptions.series.push({ name: "Muertos", data: dataMuertos });
     MapOptions.series.push({ name: "Contagiados", data: dataContagiados });
     MapOptions.xAxis.categories = categorias;
@@ -73,8 +74,6 @@ class App extends React.Component {
       totalMuertos: totalMuertos,
       totalContagiados: totalContagiados
     }
-
-    console.log(variablesGlobales)
 
     let MapOptions2 = this.createOptions('column', 'Lugares de contagio', 'Contagios')
     let lugaresContagio = responseJson.lugaresContagio;
@@ -93,6 +92,8 @@ class App extends React.Component {
     MapOptions3.series.push({ name: "Estrato 5", data: [estratosContagio["5"]] })
     MapOptions3.series.push({ name: "Estrato 6", data: [estratosContagio["6"]] })
 
+    let variablesSemilla = responseJson.variablesSemilla;
+    console.log(variablesSemilla)
 
     this.setState({ 
       options: MapOptions, 
@@ -100,7 +101,8 @@ class App extends React.Component {
       options3: MapOptions3,
       awaitToRender: false, 
       variablesGlobales: variablesGlobales, 
-      lugaresContagio: lugaresContagio 
+      lugaresContagio: lugaresContagio,
+      valoresSemilla: variablesSemilla
     })
   }
 
@@ -131,7 +133,7 @@ class App extends React.Component {
 
             <Container>
               <Segment>
-              <StatisticHead></StatisticHead>
+              <StatisticSemilla valoresSemilla={this.state.valoresSemilla}></StatisticSemilla>
                 <Header as='h2' icon textAlign='center'>
                   <Icon name='users' circular />
                   <Header.Content>Reporte Muertes y contagios</Header.Content>

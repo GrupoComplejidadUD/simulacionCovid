@@ -40,8 +40,12 @@ def getData():
     tiempo_promedio_vuelta = []
     total_muertes = 0
     total_contagios = 0
+    variables_semilla = ""
 
     for document in collection_dias:
+        if document['dia'] == 0:
+            variables_semilla = document['variablesSemilla']
+
         variable_dia = document['variablesGlobales']
         if len(variable_dia) > 1:
             determinar_lugares_contagio_estrato(document, lugares_contagios, estrato_socioeconomico)
@@ -73,7 +77,8 @@ def getData():
         "muertesTotal": total_muertes,
         "contagiosTotal": total_contagios,
         "lugaresContagio": lugares_contagios,
-        "estratoSocioeconomico" : estrato_socioeconomico
+        "estratoSocioeconomico" : estrato_socioeconomico,
+        "variablesSemilla": variables_semilla
     })
 
 
