@@ -27,6 +27,8 @@ to crearPersonas
       set lugarInfeccion ""
       set nivelEnfermedad "ninguno"
       get-saludable
+      set contacto_otros 0
+      set muerto false
     ]
 end
 
@@ -104,5 +106,15 @@ to crearHospital
     set shape "hospital"
     set size 5
     set label camasUCI
+  ]
+end
+
+to crearCementerio
+  create-cementerios 1 [
+    setxy 0 30
+    set shape "cemetery"
+    set size 4
+    set color grey
+    set label muertos
   ]
 end

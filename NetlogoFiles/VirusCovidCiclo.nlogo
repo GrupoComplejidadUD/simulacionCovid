@@ -11,6 +11,7 @@ breed [casas casa]
 breed [lugares lugar]
 breed [vehiculos vehiculo]
 breed [hospitales hospital]
+breed [cementerios cementerio]
 
 personas-own
   [ infectada?                ;; si es true, la persona esta infectada
@@ -40,6 +41,8 @@ personas-own
     aleatorioProbabilidaContacto
     estratoSocial
     nivelEnfermedad           ;; leve, grave o critico
+    contacto_otros
+    muerto
     edad ]                    ;; Edad de la persona
 
 globals
@@ -64,7 +67,7 @@ to setup
   set insertarDatos? true
   py:setup py:python ; ejemplificar python en py
   (py:run "from moduloPython import *")
-  set listaAtributosPersona [ "infectada?" "restante-serInmune" "tiempo-infectado" "coordenadaCasa" "edad" "tiempoPromedioViajeAlTrabajoValor" "tiempoPromedioViajeACasaValor" "vehiculoPropio?" "estratoSocial" "nivelEnfermedad" "lugarInfeccion"]
+  set listaAtributosPersona [ "infectada?" "restante-serInmune" "tiempo-infectado" "coordenadaCasa" "edad" "tiempoPromedioViajeAlTrabajoValor" "tiempoPromedioViajeACasaValor" "vehiculoPropio?" "estratoSocial" "nivelEnfermedad" "lugarInfeccion" "muerto"]
   (py:run "resetDataBase('dias')")
   setup-constantes
   setup-personas
@@ -83,6 +86,7 @@ to setup-personas
   crearEstaciones
   crearLugares
   crearHospital
+  crearCementerio
 
   ask n-of numeroInfectados personas [
     set tiempoInternoLatencia 0 ;; las personas infectadas desde el dia 0 son infecciosas
@@ -141,7 +145,7 @@ end
 ;; Configuracion constantes del modelo
 to setup-constantes
   set esperanzaVida 75 * 365 * 24 * 60     ;;
-  set capacidad-mundo 300
+  set capacidad-mundo 1000
   set oportunidad-reproduccion 1
   set duracion-inmunidad 52 * 24 * 60
   set muertos 0
@@ -154,7 +158,7 @@ to go
   let minuto item 1 horaActual
   ask personas [
     if hora = 0 and minuto = 0 [nuevoDiaReset]
-    if not confinado? and nivelEnfermedad = "ninguno" [moverse]
+    if not confinado? and nivelEnfermedad = "ninguno" and not muerto [moverse]
     get-edad
     if infectada? [
       if tiempoInternoLatencia = 0 [set infeccioso? true]
@@ -193,7 +197,7 @@ end
 to get-edad
   ;; Las personas mueren de viejas si sobrepasan la esperanza de vida
   set edad edad + 0.000011415525 / 60 ; (1 /365) / 24 / 60
-  if edad > esperanzaVida [ die ]
+  if edad > esperanzaVida [ ircementerio ]
   if immune? [ set restante-serInmune restante-serInmune - 1 ]
   if infectada? [ set tiempo-infectado tiempo-infectado + 1 ]
 end
@@ -242,14 +246,13 @@ end
 to recuperarse-o-morir
   if lugarPosicion = "hospital" [set aleatorioProbabilidadMorir (aleatorioProbabilidadMorir / 10)]
   if aleatorioProbabilidadMorir < getProbabilidadMorir edad
-  [ show ((edad / 60) / 24)/ 365
-    show aleatorioProbabilidadMorir
-    show getProbabilidadMorir edad
-    set muertos muertos + 1
+  [ ;show ((edad / 60) / 24)/ 365
+    ;show aleatorioProbabilidadMorir
+    ;show getProbabilidadMorir edad
     if lugarPosicion = "hospital" [
       set camasUCI camasUCI + 1
     ]
-    die
+    ircementerio
   ]
 
   if tiempo-infectado > duracionVirus * 24 * 60     ;; si la persona ha sobrevivido la duracion del virus, entonces se cura y se mueve a la casa
@@ -269,6 +272,13 @@ to recuperarse-o-morir
 
 end
 
+to ircementerio
+  set muerto true
+  let lugarCementerio min-n-of 1 cementerios [distance myself]
+  move-to one-of lugarCementerio
+  set muertos muertos + 1
+  ask cementerios [set label muertos]
+end
 ;; Si hay menos personas que la capacidad permitida del mundo, las persona se reproducen
 to reproducir
   if count personas < capacidad-mundo and random-float 100 < oportunidad-reproduccion
@@ -422,7 +432,7 @@ numero-personas
 numero-personas
 10
 capacidad-mundo
-250.0
+447.0
 1
 1
 NIL
@@ -574,7 +584,7 @@ SLIDER
 %probabilidadContactoTransporte
 0
 100
-13.0
+20.0
 1
 1
 NIL
@@ -589,7 +599,7 @@ SLIDER
 %probabilidadContactoTrabajo
 0
 100
-15.0
+20.0
 1
 1
 NIL
@@ -619,7 +629,7 @@ camasUCI
 camasUCI
 0
 100
-13.0
+20.0
 1
 1
 NIL
@@ -634,7 +644,7 @@ SLIDER
 %probabilidadIrHospital
 0.0
 100.0
-6.6
+0.0
 0.2
 1
 %
@@ -867,6 +877,16 @@ Polygon -16777216 true false 162 80 132 78 134 135 209 135 194 105 189 96 180 89
 Circle -7500403 true true 47 195 58
 Circle -7500403 true true 195 195 58
 
+cemetery
+false
+0
+Rectangle -7500403 true true 45 195 75 270
+Rectangle -7500403 true true 225 195 255 270
+Rectangle -7500403 true true 90 105 210 270
+Circle -7500403 true true 90 45 120
+Rectangle -1 true false 135 105 165 210
+Rectangle -1 true false 105 135 195 165
+
 circle
 false
 0
@@ -987,8 +1007,9 @@ Line -7500403 true 75 195 75 240
 Line -7500403 true 225 195 225 240
 Line -16777216 false 270 180 270 255
 Line -16777216 false 0 180 300 180
-Rectangle -2674135 true false 135 15 165 135
-Rectangle -2674135 true false 75 60 225 90
+Circle -2674135 true false 97 37 134
+Rectangle -1 true false 150 45 165 150
+Rectangle -1 true false 105 90 210 105
 
 house
 false

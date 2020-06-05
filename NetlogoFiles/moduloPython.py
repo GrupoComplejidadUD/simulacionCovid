@@ -31,8 +31,8 @@ def resetDict():
 def update_variables_semilla(key, value):
     valores_semilla.update({key:value})
 
-def add_variables_semilla_to_globalDict():
-    updateDict("variablesSemilla", valores_semilla)
+def add_variables_semilla_to_globalDict(nombre_key):
+    updateDict(nombre_key, valores_semilla)
 
 def reset_variables_semilla():
     valores_semilla.clear()
@@ -65,3 +65,34 @@ def agregarInformacionDia(id, nombreColeccion, variable):
 def updateOne(filtro, actualizacion, nombreColeccion):
     coleccion = getCollection(nombreColeccion)
     coleccion.update_one(filtro, actualizacion)
+
+def get_probabilidad_acumulada():
+    result = getDataBaseClient()[dataBaseName]['dias']
+    cursor = result.find({}, {'personas':0})
+    list_contagiados_diarios = []
+    for document in cursor:
+        variables_globales = document['variablesGlobales']
+        variable_dia = document['dia']
+        
+        if len(variables_globales) > 1:
+            if variable_dia == 0:
+                poblacion_actual = document['variablesSemilla']["poblacionInicial"]
+                infeccioso_primer_dia = document['variablesSemilla']['infeccioso']
+                list_contagiados_diarios.append(infeccioso_primer_dia)
+            else:
+                poblacion_actual = document['variablesCalculadas']["poblacionActual"]
+            muertos_inicio = variables_globales[0]['inicio']['muertos']
+            muertos_fin = variables_globales[1]['fin']['muertos']
+            contagiados_inicio = variables_globales[0]['inicio']['contagiados']
+            contagiados_fin = variables_globales[1]['fin']['contagiados']
+            contagiados_por_dia = contagiados_fin - contagiados_inicio
+            muertes_por_dia = muertos_fin - muertos_inicio
+
+            if contagiados_por_dia == 0:
+                list_contagiados_diarios.append(0)
+            else:
+                porcentaje = (contagiados_por_dia / poblacion_actual) * 100
+                list_contagiados_diarios.append(porcentaje)
+
+    #print("Lista:", list_contagiados_diarios)
+    print("% contagiados:", sum(list_contagiados_diarios) / len(list_contagiados_diarios))

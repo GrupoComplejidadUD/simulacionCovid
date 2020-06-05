@@ -7,6 +7,13 @@ to guardarPersonasBaseDatos
       py:set "id" item 2 dia
       (py:run "agregarPersona(id, 'dias')")
   ]
+  ejecutarMuerte
+end
+
+to ejecutarMuerte
+  ask personas with [muerto] [
+    die
+  ]
 end
 
 to insertarVariablesSemilla
@@ -23,7 +30,15 @@ to insertarVariablesSemilla
   updateVariablesSemilla "%probabilidadContactoTrabajo" %probabilidadContactoTrabajo
   updateVariablesSemilla "camasUCI" camasUCI
   updateVariablesSemilla "%probabilidadIrHospital" %probabilidadIrHospital
-  (py:run "add_variables_semilla_to_globalDict()")
+  (py:run "add_variables_semilla_to_globalDict('variablesSemilla')")
+  
+end
+
+to insertarVariablesDiarias
+  (py:run "reset_variables_semilla()")
+  updateVariablesSemilla "poblacionActual" count personas
+  (py:run "add_variables_semilla_to_globalDict('variablesCalculadas')")
+  (py:run "get_probabilidad_acumulada()")
   
 end
 
@@ -32,7 +47,9 @@ to guardarDiaBaseDatos
   (py:run "resetDict()")
   updateDictPython "_id" item 2 dia
   updateDictPython "dia" item 2 dia
-  if item 2 dia = 0 [insertarVariablesSemilla]
+  ifelse item 2 dia = 0 
+  [insertarVariablesSemilla]
+  [insertarVariablesDiarias]
   (py:run "insertarDictMongo('dias')")
   (py:run "resetDict()")
   guardarDatosDia "inicio"
@@ -56,8 +73,8 @@ end
 to actualizarLugarInfeccion
   (py:run "resetDict()")
   let dia getHora
-  show who
-  show lugarInfeccion
+  ;show who
+  ;show lugarInfeccion
   py:set "id" item 2 dia
   py:set "id_persona" who
   py:set "lugar_infeccion" lugarInfeccion
