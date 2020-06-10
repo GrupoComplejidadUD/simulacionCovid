@@ -43,6 +43,7 @@ personas-own
     nivelEnfermedad           ;; leve, grave o critico
     contacto_otros
     muerto
+    sexo                      ;; sexo de la persona
     edad ]                    ;; Edad de la persona
 
 globals
@@ -60,6 +61,7 @@ globals
     listaLugaresParaIr       ;; Lista de los lugares a los que puede ir una persona
     listaAtributosPersona    ;; Lista atributos para obtener variables del agente persona
     insertarDatos?           ;;
+    variableEdad             ;; 365 dias por 24 horas por 60 minutos
     duracion-inmunidad ]     ;; Cuantas semanas dura la inmunidad
 
 to setup
@@ -67,7 +69,7 @@ to setup
   set insertarDatos? true
   py:setup py:python ; ejemplificar python en py
   (py:run "from moduloPython import *")
-  set listaAtributosPersona [ "infectada?" "restante-serInmune" "tiempo-infectado" "coordenadaCasa" "edad" "tiempoPromedioViajeAlTrabajoValor" "tiempoPromedioViajeACasaValor" "vehiculoPropio?" "estratoSocial" "nivelEnfermedad" "lugarInfeccion" "muerto"]
+  set listaAtributosPersona [ "infectada?" "restante-serInmune" "tiempo-infectado" "coordenadaCasa" "edad" "sexo" "tiempoPromedioViajeAlTrabajoValor" "tiempoPromedioViajeACasaValor" "vehiculoPropio?" "estratoSocial" "nivelEnfermedad" "lugarInfeccion" "muerto"]
   (py:run "resetDataBase('dias')")
   setup-constantes
   setup-personas
@@ -150,6 +152,7 @@ to setup-constantes
   set duracion-inmunidad 52 * 24 * 60
   set muertos 0
   set contagiados 0
+  set variableEdad 365 * 24 * 60 ; 365 dias por 24 horas por 60 minutos para llevar a unidades de tick
 end
 
 to go
@@ -158,7 +161,8 @@ to go
   let minuto item 1 horaActual
   ask personas [
     if hora = 0 and minuto = 0 [nuevoDiaReset]
-    if not confinado? and nivelEnfermedad = "ninguno" and not muerto [moverse]
+    if not confinado? and nivelEnfermedad = "ninguno" and not muerto and edad > (edadSalir * variableEdad)
+    [moverse]
     get-edad
     if infectada? [
       if tiempoInternoLatencia = 0 [set infeccioso? true]
@@ -292,10 +296,6 @@ to-report immune?
   report restante-serInmune > 0
 end
 
-to startup
-  setup-constantes
-end
-
 to-report getHora
   let minutos ticks
   let horas int (ticks / 60)
@@ -370,9 +370,9 @@ HORIZONTAL
 
 BUTTON
 35
-545
+615
 105
-580
+650
 NIL
 setup
 NIL
@@ -387,9 +387,9 @@ NIL
 
 BUTTON
 111
-545
+615
 182
-581
+651
 NIL
 go
 T
@@ -660,6 +660,21 @@ camasUCI
 17
 1
 11
+
+SLIDER
+35
+545
+207
+578
+edadSalir
+edadSalir
+1
+75
+12.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?

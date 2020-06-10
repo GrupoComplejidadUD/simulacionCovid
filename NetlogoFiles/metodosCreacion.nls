@@ -1,7 +1,7 @@
 to crearPersonas
   create-personas numero-personas
     [ setxy 0  0
-      set edad (random (75 - 1) + 1) * 365 * 24 * 60 ; random entre 1 y 75 años. 365 dias por 24 horas por 60 minutos
+      set edad 0
       set tiempo-infectado 0
       set restante-serInmune 0
       set shape "person"
@@ -29,6 +29,7 @@ to crearPersonas
       get-saludable
       set contacto_otros 0
       set muerto false
+      set sexo 0
     ]
 end
 

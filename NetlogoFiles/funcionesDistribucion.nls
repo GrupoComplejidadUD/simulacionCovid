@@ -1,4 +1,5 @@
 ;; Funcion para distribuir las personas en diferentes casas, en la casa pueden habitar maximo 2 personas
+;; se llama a la distribucion por estrato y por edad
 to distribuirEnCasasYVehiculos
   let listaVehiculosPropios [self] of vehiculos
   let iterador 0
@@ -19,12 +20,14 @@ to distribuirEnCasasYVehiculos
     ]
     set coordenadaCasa listaXY
 
-    distribuiPoblacionEstrato
+    distribuirPoblacionEstrato
+    distribuirPoblacionPorEdad
+    distribuirPoblacionPorSexo
 
   ]
 end
 
-to distribuiPoblacionEstrato
+to distribuirPoblacionEstrato
   let porcentajeSinEstrato count personas with [ estratoSocial = 0 ] / count personas * 100
 
   ifelse porcentajeSinEstrato = 100 or porcentajeSinEstrato > 98.4
@@ -42,4 +45,24 @@ to distribuiPoblacionEstrato
       ]
     ]
   ]
+end
+
+
+to distribuirPoblacionPorEdad
+  let porcentajeSinEdad count personas with [ edad = 0 ] / count personas * 100
+
+  ifelse porcentajeSinEdad = 100 or porcentajeSinEdad > 90.9
+  [set edad (random (75 - 65) + 65) * variableEdad ]
+    [ifelse porcentajeSinEdad > 22.6
+      [set edad (random (64 - 15) + 15) * variableEdad ]
+      [set edad (random (14 - 1) + 1) * variableEdad]
+    ]
+end
+
+to distribuirPoblacionPorSexo
+  let porcentajeSinSexo count personas with [ sexo = 0 ] / count personas * 100
+
+  ifelse porcentajeSinSexo = 100 or porcentajeSinSexo > 51.2
+  [set sexo "hombre"]
+  [set sexo "mujer"]
 end
