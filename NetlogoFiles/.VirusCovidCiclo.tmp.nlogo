@@ -71,7 +71,7 @@ to setup
   set insertarDatos? true
   py:setup py:python ; ejemplificar python en py
   (py:run "from moduloPython import *")
-  set listaAtributosPersona [ "infectada?" "restante-serInmune" "tiempo-infectado" "coordenadaCasa" "edad" "sexo" "ocupacion" "tiempoPromedioViajeAlTrabajoValor" "tiempoPromedioViajeACasaValor" "vehiculoPropio?" "estratoSocial" "nivelEnfermedad" "lugarInfeccion" "muerto"]
+  set listaAtributosPersona [ "infectada?" "restante-serInmune" "tiempo-infectado" "coordenadaCasa" "edad" "sexo" "ocupacion"  "tiempoPromedioViajeAlTrabajoValor" "tiempoPromedioViajeACasaValor" "vehiculoPropio?" "estratoSocial" "nivelEnfermedad" "lugarInfeccion" "muerto"]
   (py:run "resetDataBase('dias')")
   setup-constantes
   setup-personas
