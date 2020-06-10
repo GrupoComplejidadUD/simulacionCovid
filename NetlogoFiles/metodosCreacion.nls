@@ -71,21 +71,9 @@ to crearCasasConfinamiento
     ]
     
     [
-      if ocupacion = "estudiante"
-      [
-        confinamientPorOcupacion ocupacion %confinamientoEstudiantes
-      ]
-      
-      if ocupacion = "trabajador"
-      [
-        confinamientPorOcupacion ocupacion %confinamientoTrabajadores
-      ]
-      
-      if ocupacion = "jubilado"
-      [
-        confinamientPorOcupacion ocupacion %confinamientoJubilados
-      ]
-      
+      if ocupacion = "estudiante" [confinamientPorOcupacion %confinamientoEstudiantes]
+      if ocupacion = "trabajador" [confinamientPorOcupacion %confinamientoTrabajadores]
+      if ocupacion = "jubilado" [confinamientPorOcupacion %confinamientoJubilados]
     ]
   ]
 
@@ -100,8 +88,8 @@ to crearCasasConfinamiento
   ]
 end
 
-to confinamientPorOcupacion [ocupacionPersona %confinamientoPersona]
-  let porcentajeOcupacionNoConfinado count personas with [ ocupacion = ocupacionPersona and confinado? = true] / count personas with [ocupacion = ocupacionPersona] * 100
+to confinamientPorOcupacion [%confinamientoPersona]
+  let porcentajeOcupacionNoConfinado count personas with [ ocupacion = ocupacion and confinado? = true] / count personas with [ocupacion = ocupacion] * 100
   if porcentajeOcupacionNoConfinado < %confinamientoPersona
   [
     set confinado? true
