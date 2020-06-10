@@ -2,7 +2,7 @@ to irHospital
   let listaHospitales [self] of hospitales
   let hospitalCercano item 0 listaHospitales
   ask hospitales [
-    set label camasUCI
+    set label numeroCamasUCI
   ]
   recibirAtencionMedica
   if nivelEnfermedad = "leve" [
@@ -12,11 +12,14 @@ to irHospital
       set color red
     ]
   ]
-  if camasUCI > 0 and nivelEnfermedad = "critico"
+  if nivelEnfermedad = "grave" [
+    move-to hospitalCercano
+  ]
+  if numeroCamasUCI > 0 and nivelEnfermedad = "critico"
   [
-    move-to item 0 listaHospitales
+    move-to hospitalCercano
     set lugarPosicion "hospital"
-    set camasUCI camasUCI - 1
+    set numeroCamasUCI numeroCamasUCI - 1
   ]
 end
 

@@ -28,9 +28,8 @@ to insertarVariablesSemilla
   updateVariablesSemilla "%infectadosAsintomaticos" %infectadosAsintomaticos
   updateVariablesSemilla "%probabilidadContactoTransporte" %probabilidadContactoTransporte
   updateVariablesSemilla "%probabilidadContactoTrabajo" %probabilidadContactoTrabajo
-  updateVariablesSemilla "camasUCI" camasUCI
+  updateVariablesSemilla "camasUCI" numeroCamasUCI
   updateVariablesSemilla "%probabilidadIrHospital" %probabilidadIrHospital
-  updateVariablesSemilla "edadSalir" edadSalir
   (py:run "add_variables_semilla_to_globalDict('variablesSemilla')")
   
 end

@@ -22,6 +22,7 @@ to distribuirEnCasasYVehiculos
 
     distribuirPoblacionEstrato
     distribuirPoblacionPorEdad
+    distribuirPoblacionPorOcupacion
     distribuirPoblacionPorSexo
 
   ]
@@ -53,10 +54,10 @@ to distribuirPoblacionPorEdad
 
   ifelse porcentajeSinEdad = 100 or porcentajeSinEdad > 90.9
   [set edad (random (75 - 65) + 65) * variableEdad ]
-    [ifelse porcentajeSinEdad > 22.6
+  [ifelse porcentajeSinEdad > 22.6
       [set edad (random (64 - 15) + 15) * variableEdad ]
       [set edad (random (14 - 1) + 1) * variableEdad]
-    ]
+  ]
 end
 
 to distribuirPoblacionPorSexo
@@ -65,4 +66,14 @@ to distribuirPoblacionPorSexo
   ifelse porcentajeSinSexo = 100 or porcentajeSinSexo > 51.2
   [set sexo "hombre"]
   [set sexo "mujer"]
+end
+
+to distribuirPoblacionPorOcupacion
+  
+  ifelse edad > (65 * variableEdad)
+  [set ocupacion "jubilado"]
+  [ifelse edad > (20 * variableEdad)
+      [set ocupacion "trabajador" ]
+      [set ocupacion "estudiante"]
+  ]
 end

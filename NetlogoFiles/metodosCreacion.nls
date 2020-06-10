@@ -30,6 +30,7 @@ to crearPersonas
       set contacto_otros 0
       set muerto false
       set sexo 0
+      set ocupacion 0 
     ]
 end
 
@@ -60,12 +61,35 @@ to crearCasasConfinamiento
   let personasConfinadas 0
   ask personas [
     set listaCoordenadasCasas lput coordenadaCasa listaCoordenadasCasas
-    if (%confinamiento * count personas / 100)  > personasConfinadas [
-      set confinado? true
-      set personasConfinadas personasConfinadas + 1
+    ifelse %confinamiento > 0   
+    [
+      if (%confinamiento * count personas / 100)  > personasConfinadas 
+      [
+        set confinado? true
+        set personasConfinadas personasConfinadas + 1
+      ]
+    ]
+    
+    [
+      if ocupacion = "estudiante"
+      [
+        confinamientPorOcupacion ocupacion %confinamientoEstudiantes
+      ]
+      
+      if ocupacion = "trabajador"
+      [
+        confinamientPorOcupacion ocupacion %confinamientoTrabajadores
+      ]
+      
+      if ocupacion = "jubilado"
+      [
+        confinamientPorOcupacion ocupacion %confinamientoJubilados
+      ]
+      
     ]
   ]
 
+  
   foreach listaCoordenadasCasas [ tuplaCoordenadasCasa ->
     create-casas 1 [
       setxy item 0 tuplaCoordenadasCasa item 1 tuplaCoordenadasCasa
@@ -74,6 +98,14 @@ to crearCasasConfinamiento
       set size 1.5
     ]
   ]
+end
+
+to confinamientPorOcupacion [ocupacionPersona %confinamientoPersona]
+  let porcentajeOcupacionNoConfinado count personas with [ ocupacion = ocupacionPersona and confinado? = true] / count personas with [ocupacion = ocupacionPersona] * 100
+  if porcentajeOcupacionNoConfinado < %confinamientoPersona
+  [
+    set confinado? true
+  ]  
 end
 
 to crearLugares
@@ -106,7 +138,7 @@ to crearHospital
     setxy 0 0
     set shape "hospital"
     set size 5
-    set label camasUCI
+    set label numeroCamasUCI
   ]
 end
 

@@ -43,6 +43,7 @@ personas-own
     nivelEnfermedad           ;; leve, grave o critico
     contacto_otros
     muerto
+    ocupacion                 ;; estudiante, trabajador o jubilado
     sexo                      ;; sexo de la persona
     edad ]                    ;; Edad de la persona
 
@@ -53,6 +54,7 @@ globals
     oportunidad-reproduccion ;; la probabilidad de una persona de generar descendencia cada tick
     capacidad-mundo          ;; Numero de personas en el mundo
     muertos                  ;; Numero de muertos
+    numeroCamasUCI
     contagiados              ;; Numero de contagiados
     horaActual               ;; hora en formato 24h
     areaTipo                 ;; Area tipo 1, 2, 3 o 4
@@ -69,7 +71,7 @@ to setup
   set insertarDatos? true
   py:setup py:python ; ejemplificar python en py
   (py:run "from moduloPython import *")
-  set listaAtributosPersona [ "infectada?" "restante-serInmune" "tiempo-infectado" "coordenadaCasa" "edad" "sexo" "tiempoPromedioViajeAlTrabajoValor" "tiempoPromedioViajeACasaValor" "vehiculoPropio?" "estratoSocial" "nivelEnfermedad" "lugarInfeccion" "muerto"]
+  set listaAtributosPersona [ "infectada?" "restante-serInmune" "tiempo-infectado" "coordenadaCasa" "edad" "sexo" "ocupacion" "tiempoPromedioViajeAlTrabajoValor" "tiempoPromedioViajeACasaValor" "vehiculoPropio?" "estratoSocial" "nivelEnfermedad" "lugarInfeccion" "muerto"]
   (py:run "resetDataBase('dias')")
   setup-constantes
   setup-personas
@@ -151,6 +153,7 @@ to setup-constantes
   set oportunidad-reproduccion 1
   set duracion-inmunidad 52 * 24 * 60
   set muertos 0
+  set numeroCamasUCI camasUCI
   set contagiados 0
   set variableEdad 365 * 24 * 60 ; 365 dias por 24 horas por 60 minutos para llevar a unidades de tick
 end
@@ -161,7 +164,7 @@ to go
   let minuto item 1 horaActual
   ask personas [
     if hora = 0 and minuto = 0 [nuevoDiaReset]
-    if not confinado? and nivelEnfermedad = "ninguno" and not muerto and edad > (edadSalir * variableEdad)
+    if not confinado? and nivelEnfermedad = "ninguno" and not muerto
     [moverse]
     get-edad
     if infectada? [
@@ -254,7 +257,7 @@ to recuperarse-o-morir
     ;show aleatorioProbabilidadMorir
     ;show getProbabilidadMorir edad
     if lugarPosicion = "hospital" [
-      set camasUCI camasUCI + 1
+      set numeroCamasUCI numeroCamasUCI + 1
     ]
     ircementerio
   ]
@@ -262,7 +265,7 @@ to recuperarse-o-morir
   if tiempo-infectado > duracionVirus * 24 * 60     ;; si la persona ha sobrevivido la duracion del virus, entonces se cura y se mueve a la casa
   [
     if lugarPosicion = "hospital" [
-      set camasUCI camasUCI + 1
+      set numeroCamasUCI numeroCamasUCI + 1
       setxy item 0 coordenadaCasa item 1 coordenadaCasa
       set lugarPosicion "casa"
     ]
@@ -370,9 +373,9 @@ HORIZONTAL
 
 BUTTON
 35
-615
+675
 105
-650
+710
 NIL
 setup
 NIL
@@ -387,9 +390,9 @@ NIL
 
 BUTTON
 111
-615
+675
 182
-651
+711
 NIL
 go
 T
@@ -502,7 +505,7 @@ tiempoLatencia
 tiempoLatencia
 0
 10
-3.0
+0.0
 1
 1
 dias
@@ -517,7 +520,7 @@ SLIDER
 %confinamiento
 0
 100
-0.0
+1.0
 1
 1
 %
@@ -525,9 +528,9 @@ HORIZONTAL
 
 SLIDER
 35
-285
+415
 227
-318
+448
 %vehiculoPropio
 %vehiculoPropio
 0
@@ -540,9 +543,9 @@ HORIZONTAL
 
 SLIDER
 35
-325
+455
 297
-358
+488
 %infectadosAsintomaticos
 %infectadosAsintomaticos
 0
@@ -577,9 +580,9 @@ count personas with [infectada? = true]
 
 SLIDER
 35
-365
+495
 337
-398
+528
 %probabilidadContactoTransporte
 %probabilidadContactoTransporte
 0
@@ -592,9 +595,9 @@ HORIZONTAL
 
 SLIDER
 35
-410
+540
 312
-443
+573
 %probabilidadContactoTrabajo
 %probabilidadContactoTrabajo
 0
@@ -614,7 +617,7 @@ numeroInfectados
 numeroInfectados
 0
 100
-10.0
+11.0
 1
 1
 NIL
@@ -622,9 +625,9 @@ HORIZONTAL
 
 SLIDER
 35
-450
+580
 207
-483
+613
 camasUCI
 camasUCI
 0
@@ -637,14 +640,14 @@ HORIZONTAL
 
 SLIDER
 35
-495
+625
 292
-528
+658
 %probabilidadIrHospital
 %probabilidadIrHospital
 0.0
 100.0
-0.0
+10.6
 0.2
 1
 %
@@ -663,17 +666,47 @@ camasUCI
 
 SLIDER
 35
-545
-207
-578
-edadSalir
-edadSalir
+285
+317
+318
+%confinamientoTrabajadores
+%confinamientoTrabajadores
+0
+100
+45.0
 1
-75
-12.0
+1
+%
+HORIZONTAL
+
+SLIDER
+35
+325
+307
+358
+%confinamientoEstudiantes
+%confinamientoEstudiantes
+0
+100
+50.0
 1
 1
-NIL
+%
+HORIZONTAL
+
+SLIDER
+35
+370
+287
+403
+%confinamientoJubilados
+%confinamientoJubilados
+0
+100
+50.0
+1
+1
+%
 HORIZONTAL
 
 @#$#@#$#@
